@@ -195,5 +195,56 @@ for path, data in tqdm(all_data.items(), desc="Writing Files", unit="map"):
         
         
 
+"""
+with tqdm(total=NB_TP + 1, desc="Processing", unit="map") as pbar:
+    while len(cache) <= NB_TP:
+        #print(cache)
+        map1=random.randint(0,len(resumed_maps)-1)
+        map2=random.randint(0,len(resumed_maps)-1)
+        #print(map1, map2)
+        data1 = load_json(resumed_maps[map1][0])
+        data2 = load_json(resumed_maps[map2][0])
+        randomChoice1 = random.choice(lst)
+        randomChoice2 = random.choice(lst)
+        #print(randomChoice1, randomChoice2)
+        
+        while resumed_maps[map1][1][randomChoice1] == [] or resumed_maps[map2][1][randomChoice2] == []:
+            if resumed_maps[map1][1][randomChoice1] == []: 
+                randomChoice1 = random.choice(lst)
+            if resumed_maps[map2][1][randomChoice2] == []: 
+                randomChoice2 = random.choice(lst)
+        
+        
+        
+        randomId1 = random.choice(resumed_maps[map1][1][randomChoice1])
+        randomId2 = random.choice(resumed_maps[map2][1][randomChoice2])
+        
+        if (map1,randomId1) in cache or (map2,randomId2) in cache:
+            continue
+        
+        
+        #print(randomId1, randomId2)
+        
+        name1 = data1['entities'][randomId1]['settings']['name']
+        name2 = data2['entities'][randomId2]['settings']['name']
+        #print(name1, name2)
+        
+        
+        
+        #print(data1['entities'][randomId1]['settings']['map'],data2['entities'][randomId2]['settings']['map'])
+        
+        
+        if (map1, randomId1) not in cache and (map2, randomId2) not in cache:
+            
+            cache.append((map1, randomId1))
+            cache.append((map2, randomId2))
+            
+            swap_room(data1, data2, randomId1, randomId2)
+            
+            save_json(resumed_maps[map1][0], data1)
+            save_json(resumed_maps[map2][0], data2)
+            
+            pbar.update(1)
+    """        
 
 #endregion
