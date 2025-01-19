@@ -1,5 +1,6 @@
 import json,os
 from tqdm import tqdm
+import random
 
 """
 print(data['entities'][68]['settings']['map'])
@@ -77,22 +78,22 @@ def swap_room(data1, data2, id1:int, id2:int):
 def search_id_Tp_Ground(data):
     TeleportGround_ids = []
     for i in range(len(data['entities'])):
-        if data['entities'][i]['type'] == 'TeleportGround':    
-            TeleportGround_ids.append(i)
+        if data['entities'][i]['type'] == 'TeleportGround':   
+            TeleportGround_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['dir'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
     return TeleportGround_ids
 
 def search_id_Tp_stairs(data):
     TeleportStairs_ids = []
     for i in range(len(data['entities'])):
-        if data['entities'][i]['type'] == 'TeleportStairs':    
-            TeleportStairs_ids.append(i)
+        if data['entities'][i]['type'] == 'TeleportStairs':   
+            TeleportStairs_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['stairType'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
     return TeleportStairs_ids
 
 def search_id_Tp_Doors(data):
     TeleportDoors_ids = []
     for i in range(len(data['entities'])):
         if data['entities'][i]['type'] == 'Door':    
-            TeleportDoors_ids.append(i)
+            TeleportDoors_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['dir'],data['entities'][i]['settings']['marker']))
     return TeleportDoors_ids
 
 def search_id_Tp_Fields(data):
@@ -113,6 +114,86 @@ def search_all_Tp(data):
     
     return Teleport_ids
 
+
+def get_map_by_name(name:str):
+    maps = get_all_file_and_dir()
+    lst=[]
+    name = str(name)+'.json'
+    for i in maps.keys():
+        if name in maps[i]:
+            lst.append(i)
+    return lst
+
+
+def set_tp_ground(data,teleport,name,map,dir,marker,mapId):
+    data['entities'][teleport]['settings']['name'] = name
+    data['entities'][teleport]['settings']['map'] = map
+    data['entities'][teleport]['settings']['dir'] = dir
+    data['entities'][teleport]['settings']['marker'] = marker
+    data['entities'][teleport]['settings']['mapId'] = mapId
+    return data
+
+def set_tp_stairs(data,teleport,name,map,stairType,marker,mapId):
+    data['entities'][teleport]['settings']['name'] = name
+    data['entities'][teleport]['settings']['map'] = map
+    data['entities'][teleport]['settings']['stairType'] = stairType
+    data['entities'][teleport]['settings']['marker'] = marker
+    data['entities'][teleport]['settings']['mapId'] = mapId
+    return data
+
+def set_tp_doors(data,teleport,name,map,dir,marker):    
+    data['entities'][teleport]['settings']['name'] = name
+    data['entities'][teleport]['settings']['map'] = map
+    data['entities'][teleport]['settings']['dir'] = dir
+    data['entities'][teleport]['settings']['marker'] = marker
+    return data
+
+def resume(maps):
+    resumed_maps = []
+
+    for path in maps:
+        #print(path)
+        data = load_json(path)
+        Teleport_ids = search_all_Tp(data)        
+        if Teleport_ids :
+            resumed_maps.append((path,Teleport_ids))
+    
+    """
+    for i in resumed_maps:
+        print(i)"""
+    return resumed_maps
+
+
+def count_Tp(resumed_maps):
+    count = 0
+    count += len(resumed_maps[1]['Tp_Ground'])
+    count += len(resumed_maps[1]['Tp_stairs'])
+    count += len(resumed_maps[1]['Tp_Doors'])
+    return count
+    
+def split_name(name):
+    #name = assets/data/maps/autumn/entrance.json
+    name = name.split('\\')
+    name = name[-1]
+    name = name.split('.')
+    name = name[0]
+    return name
+
+def split_zone(name):
+    #name = assets/data/maps/autumn/entrance.json
+    name = name.split('\\')
+    name = name[-2]
+    return name
+
+def tp_name(name):
+    a = split_name(name)
+    b = split_zone(name)
+    return str(b+'.'+a)
+
+def replace_slash(name):
+    name = name.replace('/','\\')
+    return name
+
 #endregion
 
 
@@ -122,34 +203,115 @@ def search_all_Tp(data):
 
 
 #region Randomize
-
-import random
-excludes_maps = ['assets\\data\\maps\\wm-preview' ,'assets\\data\\maps\\arena']
-cache = []
-
 NB_TP = 1731
+
+excludes_maps = ['assets\\data\\maps\\wm-preview' ,'assets\\data\\maps\\arena']
 maps = get_maps(excludes_maps)
+#resumed_maps = resume(maps)
 
 
-resumed_maps = []
+room = [
+    
+    'assets/data/maps/autumn/entrance.json',
+    'assets/data/maps/autumn/path-1-1.json',
+    'assets/data/maps/autumn/path-1-2.json',
+    'assets/data/maps/autumn/path-1-3.json',
+    'assets/data/maps/autumn/path-1.json',
+    'assets/data/maps/autumn/path-2.json',
+    'assets/data/maps/autumn/path-3-1.json',
+    'assets/data/maps/autumn/path-3-2.json',
+    'assets/data/maps/autumn/path-3-4.json',
+    'assets/data/maps/autumn/path4.json',
+    'assets/data/maps/autumn/path5.json',
+    'assets/data/maps/autumn/path6.json',
+    'assets/data/maps/autumn/path-7-1.json',
+    'assets/data/maps/autumn/path-7-2.json',
+    'assets/data/maps/autumn/path-8.json',  
+]
 
-for path in maps:
-    #print(path)
-    data = load_json(path)
-    Teleport_ids = search_all_Tp(data)
-    if Teleport_ids == None:
-        continue
 
-    resumed_maps.append((path,Teleport_ids))
-   
-"""
-for i in resumed_maps:
-    print(i)"""
+def labyrinthe(room):
+    resumed_maps = resume(room)
+    resumed_maps_count = []
+    directinv = {'NORTH':'SOUTH','SOUTH':'NORTH','EAST':'WEST','WEST':'EAST'}
+    
+    for i in resumed_maps:
+        resumed_maps_count.append((i[0],i[1],count_Tp(i)))
+    #print(resumed_maps_count)
+    resumed_maps=resumed_maps_count
+    count = 0
+    for i in resumed_maps:
+        count += i[2]
+    print(count)
+    #print(resumed_maps)
+    
+    
+    currant = resumed_maps[0]
+    currant_tp = currant[1]['Tp_Ground'][0]
+    
+    used_tp = []
+    used_tp.append(currant_tp)
+    while len(used_tp) < count:
+        
+        currant_dir = currant_tp[4]
+        currant_map = currant[0]
+        choice = random.choice(resumed_maps)
+        if choice == currant:
+            continue
+        choice_tp = random.choice(choice[1]['Tp_Ground'])
+        
+        choice_dir = choice_tp[4]
+        if choice_dir != directinv[currant_dir]:
+            continue
+        
+        print(currant_tp,choice_tp)
+        temp1 = currant_tp
+        temp2 = choice_tp
+        currant_tp = (temp1[0],temp1[1],temp1[2],temp2[3],temp1[4],temp1[5],temp1[6])
+        choice_tp = (temp2[0],temp2[1],temp2[2],temp1[3],temp2[4],temp2[5],temp2[6])
+        print('---')
+        
+        currant = choice
+        used_tp.append(currant_tp)
+        used_tp.append(choice_tp)
+        print(currant_tp,choice_tp)
+        print('---')
+        print('---')
+        
+        
+            
+       
+    
 
+labyrinthe(room)
+
+
+
+
+
+
+
+#(448, 'TeleportGround', 'south-1', 'arid.river-1', 'SOUTH/NORTH/EAST/WEST', 'north-2', 569)
+#(1, 'TeleportStairs', 'up', 'autumn.guild.inner-fs-og', 'UPWARDS_EAST/UPWARDS_NORTH/UPWARDS_SOUTH/UPWARDS_WEST', 'down', 5)
+#(0, 'TeleportStairs', 'down', 'autumn.guild.inner-fs-eg', 'DOWNWARDS_WEST/DOWNWARDS_NORTH/DOWNWARDS_SOUTH/DOWNWARDS_EAST', 'up', 5)
+#(1, 'Door', 'door1', 'arid.test', 'NORTH/SOUTH/EAST/WEST', 'door1')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+cache = []
 lst = ['Tp_Ground','Tp_stairs','Tp_Doors']
-
-
-
 with tqdm(total=NB_TP + 1, desc="Processing", unit="map") as pbar:
     while len(cache) <= NB_TP:
         map1=random.randint(0,len(resumed_maps)-1)
@@ -194,6 +356,9 @@ for path, data in tqdm(all_data.items(), desc="Writing Files", unit="map"):
     
         
         
+        
+
+
 
 """
 with tqdm(total=NB_TP + 1, desc="Processing", unit="map") as pbar:
@@ -246,8 +411,13 @@ with tqdm(total=NB_TP + 1, desc="Processing", unit="map") as pbar:
             
             pbar.update(1)
     """        
+            
 
 #endregion
+
+
+'''
+
 
 
 
