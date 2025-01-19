@@ -19,9 +19,9 @@ def get_all_dir(path:str = 'assets\data\maps'):
         dirs.append(i[0])
     return dirs
 
-def get_all_file_and_dir():
+def get_all_file_and_dir(path:str = 'assets\data\maps'):
     dirs = {}
-    for i in os.walk('assets\data\maps'):
+    for i in os.walk(path):
         dirs[i[0]] = i[2]
     return dirs
 
@@ -51,6 +51,15 @@ def get_maps(excludepaths:list[str] = []):
         for j in a[i]:
             maps.append(i + '\\' + j)
     return maps
+
+def get_maps_zone(path:str = 'assets\data\maps'):
+    maps = get_all_file_and_dir(path)
+    lst = []
+    for i in maps.keys():
+        for j in maps[i]:
+            lst.append(i+'\\'+j)
+    return lst
+
 
 #endregion
 
@@ -184,8 +193,11 @@ def split_name(name):
 def split_zone(name):
     #name = assets/data/maps/autumn/entrance.json
     name = name.split('\\')
-    name = name[-2]
-    return name
+    names = name[3]
+    if names == name[-2]:
+        return names
+    else:
+        return names+'.'+name[-2]
 
 def tp_name(name):
     a = split_name(name)
@@ -198,8 +210,8 @@ def replace_slash(name):
 
 #endregion
 
-
-
+#assets/data/maps/autumn/guild/entrance.json
+#autumn.guild.entrance
 
 
 
@@ -212,28 +224,9 @@ maps = get_maps(excludes_maps)
 #resumed_maps = resume(maps)
 
 
-room = [
-    
-    'assets/data/maps/autumn/entrance.json',
-    'assets/data/maps/autumn/path-1-1.json',
-    'assets/data/maps/autumn/path-1-2.json',
-    'assets/data/maps/autumn/path-1-3.json',
-    'assets/data/maps/autumn/path-1.json',
-    'assets/data/maps/autumn/path-2.json',
-    'assets/data/maps/autumn/path-3-1.json',
-    'assets/data/maps/autumn/path-3-2.json',
-    'assets/data/maps/autumn/path-3-4.json',
-    'assets/data/maps/autumn/path4.json',
-    'assets/data/maps/autumn/path5.json',
-    'assets/data/maps/autumn/path6.json',
-    'assets/data/maps/autumn/path-7-1.json',
-    'assets/data/maps/autumn/path-7-2.json',
-    'assets/data/maps/autumn/path-8.json',  
-]
-room2 = []
-for i in room:
-    room2.append(replace_slash(i))
-room = room2
+room = get_maps_zone('assets\\data\\maps\\autumn')
+
+
 
 
 def labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, currant, pbar):
@@ -247,7 +240,8 @@ def labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_proce
     for choice in resumed_maps:
         if choice == currant:
             continue
-
+        if choice[1]['Tp_Ground'] == []:
+            continue
         choice_tp = random.choice(choice[1]['Tp_Ground'])
         choice_dir = choice_tp[4]
 
@@ -264,7 +258,8 @@ def labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_proce
         to_process.append((currant_map, currant_tp, choice[0], choice_tp))
         pbar.update(1)
 
-        return labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, choice, pbar)
+        labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, choice, pbar)
+    return to_process
 
 
 # Initialize variables
@@ -280,7 +275,11 @@ def labyrinthe(room):
     count = sum(map(lambda x: x[2], resumed_maps))  # Total count of teleport points
     used_tp = []
     to_process = []
-
+    re=[]
+    for i in resumed_maps:
+        if i[1]['Tp_Ground'] != []:
+            re.append(i)   
+    resumed_maps = re
     # Initialize tqdm
     with tqdm(total=count) as pbar:
         for currant in resumed_maps:
@@ -295,7 +294,7 @@ room_size = 100
 room_spacing = 250  # Distance between rooms
 
 
-data = labyrinthe(room)
+
 # Function to get teleporter position based on direction
 def get_teleporter_position(room_pos, direction):
     """
@@ -341,13 +340,13 @@ def draw_labyrinth(data):
         # Draw the current room (square shape)
         curr_room = patches.Rectangle(curr_room_pos, room_size, room_size, linewidth=1, edgecolor='green', facecolor='none')
         ax.add_patch(curr_room)
-        ax.text(curr_room_pos[0] + room_size // 2, curr_room_pos[1] + room_size // 2, currant_map.split('/')[-1],
+        ax.text(curr_room_pos[0] + room_size // 2, curr_room_pos[1] + room_size // 2, tp_name(replace_slash(currant_map)),
                 color='black', ha='center', va='center')
 
         # Draw the choice room (square shape)
         choice_room = patches.Rectangle(choice_room_pos, room_size, room_size, linewidth=1, edgecolor='green', facecolor='none')
         ax.add_patch(choice_room)
-        ax.text(choice_room_pos[0] + room_size // 2, choice_room_pos[1] + room_size // 2, choice_map.split('/')[-1],
+        ax.text(choice_room_pos[0] + room_size // 2, choice_room_pos[1] + room_size // 2, tp_name(replace_slash(choice_map)),
                 color='black', ha='center', va='center')
 
         # Get teleporter positions based on direction
@@ -373,15 +372,20 @@ def LabyrintheWrite(to_process):
     
     load = {path: load_json(path) for path in room}
     
-    for i in to_process:
-        print(i)
+    for process in to_process:
+        #print(load[process[0]]['entities'][process[1][0]]['settings']['map'])
+        load[process[0]]['entities'][process[1][0]]['settings']['map'] = process[1][3]
+        load[process[2]]['entities'][process[3][0]]['settings']['map'] = process[3][3]
     
         
+    for path, data in tqdm(load.items()):
+        save_json(path, data)
     
     
 
-
-LabyrintheWrite(labyrinthe(room))
+data = labyrinthe(room)
+LabyrintheWrite(data)
+draw_labyrinth(data)
 
 
 
