@@ -6,3 +6,5 @@ just need to put in mods folder and get your map from crosscode into the assets/
 then execut the .bat
 
 be sure to save your maps folder somewere, it is a Alpha version
+
+and be sure to have python and all library : tqdm and matplotlib
