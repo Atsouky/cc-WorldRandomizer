@@ -124,11 +124,7 @@ def save_json(path:str,data):
 
 #region get id tp
 
-def swap_room(data1, data2, id1:int, id2:int):
-    temp = data1['entities'][id1]['settings']['map']
-    data1['entities'][id1]['settings']['map'] = data2['entities'][id2]['settings']['map']
-    data2['entities'][id2]['settings']['map'] =  temp
-    return data1, data2
+
 
 def search_id_Tp_Ground(data):
     TeleportGround_ids = []
