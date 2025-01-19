@@ -8,3 +8,5 @@ then execut the .bat
 be sure to save your maps folder somewere, it is a Alpha version
 
 and be sure to have python and all library : tqdm and matplotlib
+
+to install all library open cmd and tap : pip install tqdm matplotlib 
