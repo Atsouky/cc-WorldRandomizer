@@ -8,6 +8,8 @@ print(data['entities'][87]['settings']['map'])
 """
 
 
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 #region os
 
@@ -228,8 +230,162 @@ room = [
     'assets/data/maps/autumn/path-7-2.json',
     'assets/data/maps/autumn/path-8.json',  
 ]
+room2 = []
+for i in room:
+    room2.append(replace_slash(i))
+room = room2
 
 
+def labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, currant, pbar):
+    if len(used_tp) >= count:
+        return to_process
+
+    currant_tp = currant[1]['Tp_Ground'][0]
+    currant_dir = currant_tp[4]
+    currant_map = currant[0]
+
+    for choice in resumed_maps:
+        if choice == currant:
+            continue
+
+        choice_tp = random.choice(choice[1]['Tp_Ground'])
+        choice_dir = choice_tp[4]
+
+        if choice_dir != directinv[currant_dir] or choice_tp in used_tp:
+            continue
+
+        used_tp.append(choice_tp)
+        temp1 = currant_tp
+        temp2 = choice_tp
+
+        currant_tp = (temp1[0], temp1[1], temp1[2], tp_name(replace_slash(choice[0])), temp1[4], temp1[5], temp1[6])
+        choice_tp = (temp2[0], temp2[1], temp2[2], tp_name(replace_slash(currant_map)), temp2[4], temp2[5], temp2[6])
+
+        to_process.append((currant_map, currant_tp, choice[0], choice_tp))
+        pbar.update(1)
+
+        return labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, choice, pbar)
+
+
+# Initialize variables
+def labyrinthe(room):
+    resumed_maps = resume(room)
+    resumed_maps_count = []
+    directinv = {'NORTH': 'SOUTH', 'SOUTH': 'NORTH', 'EAST': 'WEST', 'WEST': 'EAST'}
+
+    for i in resumed_maps:
+        resumed_maps_count.append((i[0], i[1], count_Tp(i)))
+    resumed_maps = resumed_maps_count
+
+    count = sum(map(lambda x: x[2], resumed_maps))  # Total count of teleport points
+    used_tp = []
+    to_process = []
+
+    # Initialize tqdm
+    with tqdm(total=count) as pbar:
+        for currant in resumed_maps:
+            labyrinthe_recursive(room, directinv, resumed_maps, count, used_tp, to_process, currant, pbar)
+    
+    return to_process
+
+#region labyrintheDraw
+
+# Room size and spacing
+room_size = 100
+room_spacing = 250  # Distance between rooms
+
+
+data = labyrinthe(room)
+# Function to get teleporter position based on direction
+def get_teleporter_position(room_pos, direction):
+    """
+    Given a room's position (top-left corner) and a teleporter direction, return the position of the teleporter.
+    """
+    x, y = room_pos
+    if direction == 'NORTH':
+        return x + room_size // 2, y  # Top center
+    elif direction == 'EAST':
+        return x + room_size, y + room_size // 2  # Right center
+    elif direction == 'SOUTH':
+        return x + room_size // 2, y + room_size  # Bottom center
+    elif direction == 'WEST':
+        return x, y + room_size // 2  # Left center
+    return x, y  # Default if no direction matches
+def draw_labyrinth(data):
+    # Create the figure and axis
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Set up axis limits
+    ax.set_xlim(0, len(data) * room_spacing)
+    ax.set_ylim(0, 600)
+
+    # Hide axes
+    ax.axis('off')
+
+    # Tracking room positions
+    room_positions = {}
+
+    # Function to place rooms dynamically and avoid duplication
+    def place_room(room_name, base_position):
+        if room_name not in room_positions:
+            room_positions[room_name] = base_position
+            return base_position
+        return room_positions[room_name]
+
+    # Draw rooms and teleporters
+    for index, (currant_map, currant_tp, choice_map, choice_tp) in enumerate(data):
+        # Calculate room positions based on index to avoid overlap
+        curr_room_pos = place_room(currant_map, (index * room_spacing, 100))
+        choice_room_pos = place_room(choice_map, (index * room_spacing + room_size, 100))  # Place right after current room
+
+        # Draw the current room (square shape)
+        curr_room = patches.Rectangle(curr_room_pos, room_size, room_size, linewidth=1, edgecolor='green', facecolor='none')
+        ax.add_patch(curr_room)
+        ax.text(curr_room_pos[0] + room_size // 2, curr_room_pos[1] + room_size // 2, currant_map.split('/')[-1],
+                color='black', ha='center', va='center')
+
+        # Draw the choice room (square shape)
+        choice_room = patches.Rectangle(choice_room_pos, room_size, room_size, linewidth=1, edgecolor='green', facecolor='none')
+        ax.add_patch(choice_room)
+        ax.text(choice_room_pos[0] + room_size // 2, choice_room_pos[1] + room_size // 2, choice_map.split('/')[-1],
+                color='black', ha='center', va='center')
+
+        # Get teleporter positions based on direction
+        tp_curr_pos = get_teleporter_position(curr_room_pos, currant_tp[4])
+        tp_choice_pos = get_teleporter_position(choice_room_pos, choice_tp[4])
+
+        # Draw teleporters as small circles
+        ax.plot(tp_curr_pos[0], tp_curr_pos[1], 'ro', markersize=8)
+        ax.plot(tp_choice_pos[0], tp_choice_pos[1], 'ro', markersize=8)
+
+        # Draw the connection between teleporters (a simple line)
+        ax.plot([tp_curr_pos[0], tp_choice_pos[0]], [tp_curr_pos[1], tp_choice_pos[1]], 'y-', lw=2)
+
+    # Show the plot
+    plt.show()
+
+#endregion
+
+
+
+
+def LabyrintheWrite(to_process):
+    
+    load = {path: load_json(path) for path in room}
+    
+    for i in to_process:
+        print(i)
+    
+        
+    
+    
+
+
+LabyrintheWrite(labyrinthe(room))
+
+
+
+"""tp_name(replace_slash(room1))
 def labyrinthe(room):
     resumed_maps = resume(room)
     resumed_maps_count = []
@@ -248,9 +404,10 @@ def labyrinthe(room):
     
     currant = resumed_maps[0]
     currant_tp = currant[1]['Tp_Ground'][0]
-    
+    #print(currant_tp)
     used_tp = []
     used_tp.append(currant_tp)
+    to_process = []
     while len(used_tp) < count:
         
         currant_dir = currant_tp[4]
@@ -263,20 +420,29 @@ def labyrinthe(room):
         choice_dir = choice_tp[4]
         if choice_dir != directinv[currant_dir]:
             continue
+        if choice_tp in used_tp:
+            continue
         
-        print(currant_tp,choice_tp)
+        
+        used_tp.append(choice_tp)
+        
+        
+        #print(currant_map,choice[0])
+        #print(currant_tp,choice_tp)
         temp1 = currant_tp
         temp2 = choice_tp
-        currant_tp = (temp1[0],temp1[1],temp1[2],temp2[3],temp1[4],temp1[5],temp1[6])
-        choice_tp = (temp2[0],temp2[1],temp2[2],temp1[3],temp2[4],temp2[5],temp2[6])
-        print('---')
         
-        currant = choice
-        used_tp.append(currant_tp)
-        used_tp.append(choice_tp)
-        print(currant_tp,choice_tp)
-        print('---')
-        print('---')
+        currant_tp = (temp1[0],temp1[1],temp1[2],tp_name(replace_slash(choice[0])),temp1[4],temp1[5],temp1[6])
+        choice_tp = (temp2[0],temp2[1],temp2[2],tp_name(replace_slash(currant_map)),temp2[4],temp2[5],temp2[6])
+        #print('---')
+        
+        to_process.append((currant_map,currant_tp,choice[0],choice_tp))
+        
+        #print(used_tp)
+        print(currant,choice)
+        #print(currant_tp,choice_tp)
+        #print('---')
+        #print('---')
         
         
             
@@ -284,7 +450,7 @@ def labyrinthe(room):
     
 
 labyrinthe(room)
-
+"""
 
 
 
