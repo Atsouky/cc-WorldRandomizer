@@ -57,6 +57,9 @@ def visualize_teleporter_graph(G):
 
 
 directinv = {'NORTH': 'SOUTH', 'SOUTH': 'NORTH', 'EAST': 'WEST', 'WEST': 'EAST'}
+markerinv = {'NORTH': 'bottom', 'SOUTH': 'north', 'EAST': 'left', 'WEST': 'right'}
+markerinv2 = {'north': 'bottom', 'bottom': 'north', 'right': 'left', 'left': 'right'}
+
 def get_all_dir(path:str = 'assets\data\maps'):
     dirs = []
     for i in os.walk(path):
@@ -124,7 +127,11 @@ def save_json(path:str,data):
 
 #region get id tp
 
-
+def swap_room(data1, data2, id1:int, id2:int):
+    temp = data1['entities'][id1]['settings']['map']
+    data1['entities'][id1]['settings']['map'] = data2['entities'][id2]['settings']['map']
+    data2['entities'][id2]['settings']['map'] =  temp
+    return data1, data2
 
 def search_id_Tp_Ground(data):
     TeleportGround_ids = []
@@ -232,7 +239,7 @@ def resume(maps):
                     "mapId" : i[6],
                     "To" : {
                         "destination" : i[3],
-                        "marker" : i[5],
+                        "marker" : markerinv[i[4]],
                         "dir" : directinv[i[4]]
                         }
                     }
@@ -277,37 +284,52 @@ def Salles(teleporters,maps):
 
 
 maps = get_maps()
-#autmun_maps = get_maps_zone('assets\\data\\maps\\autumn')
-teleporters = resume(maps)
+autmun_maps = get_maps_zone('assets\\data\\maps\\autumn')
+teleporters = resume(autmun_maps)
 salle = Salles(teleporters,maps)
 
 """G = build_teleporter_graph(teleporters)
 visualize_teleporter_graph(G)"""
 tp = []
+tpc = []
 
-
-for i in tqdm(teleporters):
-    if i not in tp:
+for i in tqdm(teleporters , desc='Teleporters_link', unit='maps'):
+    if (i['name'],i['id']) not in tpc:
+        
         choice = random.choice(teleporters)
-        while choice in tp:
-            choice = random.choice(teleporters) 
-        while choice["dir"] != directinv[i["dir"]]:
+        
+        while (choice['name'],choice['id']) in tpc:
             choice = random.choice(teleporters)
+        while choice["name"] == i["name"]:
+            choice = random.choice(teleporters)
+        while choice["dir"] != i['To']['dir']:
+            choice = random.choice(teleporters)
+        while choice['To']['marker'] != markerinv2[i['To']['marker']]:
+            choice = random.choice(teleporters)
+        
+        
+        
         a,b = link_tps(i,choice)
-        tp.append(a)    
+        #print(a,b)
+        tpc.append((a['name'],a['id']))    
+        tpc.append((b['name'],b['id']))
+        tp.append(a)
         tp.append(b)
+        #print(i['name'],i['id'],i['To']['destination'],choice['name'],choice['id'],choice['To']['destination'])
 
 
 
-
+data = {path: load_json(path) for path in maps}
 
 for i in tqdm(tp, desc='Save', unit='maps'):
-    data = load_json(i['path'])
-    data['entities'][i['id']]['settings']['map'] = i['To']['destination']
-    data['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
-    data['entities'][i['id']]['settings']['spawnDistance'] = 46
     
-    save_json(i['path'],data)
+    data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
+    data[i['path']]['entities'][i['id']]['settings']['marker'] = i['To']['marker']
+    data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
+    data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
+    
+
+    save_json(i['path'],data[i['path']])
     
 
 
