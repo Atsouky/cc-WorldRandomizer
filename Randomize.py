@@ -54,7 +54,7 @@ def visualize_teleporter_graph(G):
 
 
 
-
+#region os
 
 directinv = {'NORTH': 'SOUTH', 'SOUTH': 'NORTH', 'EAST': 'WEST', 'WEST': 'EAST'}
 markerinv = {'NORTH': 'bottom', 'SOUTH': 'north', 'EAST': 'left', 'WEST': 'right'}
@@ -133,28 +133,52 @@ def swap_room(data1, data2, id1:int, id2:int):
     data2['entities'][id2]['settings']['map'] =  temp
     return data1, data2
 
-"""def search_id_Tp_Ground(data):
-    TeleportGround_ids = []
-    for i in range(len(data['entities'])):
-        if data['entities'][i]['type'] == 'TeleportGround':   
-            if data['entities'][i]['level'] == 1:
-                TeleportGround_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['dir'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
-    return TeleportGround_ids"""
-
 def search_id_Tp_Ground(data):
     TeleportGround_ids = []
     for i in range(len(data['entities'])):
         if data['entities'][i]['type'] == 'TeleportGround':   
             if data['entities'][i]['level'] == 1:
-                TeleportGround_ids.append()
+                TeleportGround_ids.append((
+                    
+                                                i,
+                                                data['entities'][i]['type'],
+                                                data['entities'][i]['settings']['name'],
+                                                data['entities'][i]['settings']['map'],
+                                                data['entities'][i]['settings']['dir'],
+                                                data['entities'][i]['settings']['marker'],
+                                                data['entities'][i]['settings']['mapId'],
+                                                data['entities'][i]["x"],
+                                                data['entities'][i]["y"],
+                                                data['entities'][i]["settings"]["size"]["x"],
+                                                data['entities'][i]["settings"]["size"]["y"],
+                                                data['entities'][i]["level"],
+                                            ))
     return TeleportGround_ids
+
+"""def search_id_Tp_Ground(data):
+    TeleportGround_ids = []
+    for i in range(len(data['entities'])):
+        if data['entities'][i]['type'] == 'TeleportGround':   
+            if data['entities'][i]['level'] == 1:
+                TeleportGround_ids.append(data['entities'][i])
+    return TeleportGround_ids"""
 
 
 def search_id_Tp_stairs(data):
     TeleportStairs_ids = []
     for i in range(len(data['entities'])):
         if data['entities'][i]['type'] == 'TeleportStairs':   
-            TeleportStairs_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['stairType'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
+            TeleportStairs_ids.append((
+                
+                                            i,data['entities'][i]['type'],
+                                            data['entities'][i]['settings']['name'],
+                                            data['entities'][i]['settings']['map'],
+                                            data['entities'][i]['settings']['stairType'],
+                                            data['entities'][i]['settings']['marker'],
+                                            data['entities'][i]['settings']['mapId'],
+                                            
+                                            
+                                        ))
     return TeleportStairs_ids
 
 def search_id_Tp_Doors(data):
@@ -181,6 +205,9 @@ def search_all_Tp(data):
         Teleport_ids = {'Tp_Ground': search_id_Tp_Ground(data), 'Tp_stairs': search_id_Tp_stairs(data), 'Tp_Doors': search_id_Tp_Doors(data)}
     
     return Teleport_ids
+#endregion
+
+
 
 
 def get_map_by_name(name:str):
@@ -235,7 +262,8 @@ def resume(maps):
     for path in tqdm(maps, desc='Teleporters_resume', unit='maps'):
         
         data = load_json(path)
-        Teleport_ids = search_all_Tp(data)        
+        Teleport_ids = search_all_Tp(data)       
+        
         if Teleport_ids :
             
             for i in Teleport_ids['Tp_Ground']:
@@ -245,13 +273,25 @@ def resume(maps):
                     "name" : tp_name(path), 
                     "path" : path,
                     "type" : i[1],
+                    "level" : i[11],
                     "id" : i[0],
                     "dir" : i[4],
                     "mapId" : i[6],
+                    "marque" : None,
+                    "x" : i[7],
+                    "y": i[8],
+                    "width" : i[9],
+                    "height" : i[10],
                     "To" : {
                         "destination" : i[3],
-                        "marker" : markerinv[i[4]],
-                        "dir" : directinv[i[4]]
+                        "marker" : None,
+                        "dir" : directinv[i[4]],
+                        "x" : None,
+                        "y" : None,
+                        "width" : None,
+                        "height" : None,
+                        "level" : None
+                        
                         }
                     }
                 Teleporters.append(tp)
@@ -263,7 +303,20 @@ def resume(maps):
 def link_tps(tp1,tp2):
     
     tp1['To']['destination'] = tp2['name']
+    tp1["marque"] = str(tp2["x"])+str(tp2["y"])
+    tp1["To"]["x"] = tp2["x"]
+    tp1["To"]["y"] = tp2["y"]
+    tp1["To"]["width"] = tp2["width"]
+    tp1["To"]["height"] = tp2["height"]
+    tp1["To"]["level"] = tp2["level"]
+    
     tp2['To']['destination'] = tp1['name']
+    tp2['marque'] = str(tp1["x"])+str(tp1["y"])
+    tp2["To"]["x"] = tp1["x"]
+    tp2["To"]["y"] = tp1["y"]
+    tp2["To"]["width"] = tp1["width"]
+    tp2["To"]["height"] = tp1["height"]
+    tp2["To"]["level"] = tp1["level"]
     return tp1,tp2
 
 
@@ -307,11 +360,49 @@ def load_all_data(maps):
     for path in tqdm(maps, desc='Load', unit='maps'):
         data[path] = load_json(path)
     return data
+
+def add_marker(data,i):
+    path = i['path']
+    dir = i['dir']
+    tpx,tpy,tpw,tph = i['x'],i['y'],i['width'],i['height']
+    level = i['level']
+    
+    mx = tpx + tpw / 2
+    my = tpy + tph / 2
+    
+    
+    if dir == 'NORTH':
+        my += 30
+    elif dir == 'SOUTH':
+        my -= 30
+    elif dir == 'EAST':
+        mx -= 30
+    elif dir == 'WEST':
+        mx += 30
+            
+    Mark = {
+        "type":"Marker",
+        "x":round(mx),
+        "y":round(my),
+        "level":level,
+        "settings":
+            {"size":{"x":16,"y":16},
+             "mapId":random.randint(208,300),
+             "name":str(i["x"])+str(i["y"]),
+             "dir":directinv[dir]
+             }
+        }
+    
+    data[path]["entities"].append(Mark)
+    return data
+    #{"type":"Marker","x":1011,"y":282,"level":1,"settings":{"size":{"x":16,"y":16},"mapId":207,"name":"azer","dir":"NORTH"}}
+
 def save_all_data(data,tp):
-    for i in tqdm(tp, desc='Save', unit='maps'):
+    for i in tqdm(tp, desc='Randomize', unit='maps'):
     
         data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
-        data[i['path']]['entities'][i['id']]['settings']['marker'] = i['To']['marker']
+        data[i['path']]['entities'][i['id']]['settings']['marker'] = i['marque']
+        data = add_marker(data,i)
         data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
         data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
     
@@ -319,32 +410,17 @@ def save_all_data(data,tp):
         save_json(i['path'],data[i['path']])
 
 
+def del_marker(maps): #TODO retierer uniquement les markers avec des int (modée)
+    data = load_all_data(maps)
+    for i in data:
+        data[i]['entities'] = [j for j in data[i]['entities'] if not (j['type'] == 'Marker' and j['settings']['name'].isdigit())]
 
-def place_marker(maps):
-    for path in tqdm(maps, desc='Marker', unit='maps'):
-        data = load_json(path)
-        
-        #{"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnN","dir":"SOUTH"}}]
-        tp = search_id_Tp_Ground(data)
-        
-        for i in tp:
-            if i[4] == 'NORTH':
-                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnN","dir":"SOUTH"}})
-            elif i[4] == 'SOUTH':
-                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnS","dir":"SOUTH"}})
-            elif i[4] == 'EAST':
-                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnE","dir":"SOUTH"}})
-            elif i[4] == 'WEST':
-                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnW","dir":"SOUTH"}})
-        
-        
-        
-       
-        save_json(path,data)
+
+    for i in tqdm(data, desc='verifing if marker already exist', unit='maps'):
+        save_json(i,data[i])
 
 
 #endregion
-
 
 
 
@@ -369,29 +445,34 @@ to_save = []
 
 teleporters = resume(maps)
 
+#del_marker(maps)
+Seed = None
+random.seed(None)
+random.shuffle(teleporters)
 
 
-while len(teleporters) > 0:
-    t1 = random.choice(teleporters)
-    t2 = random.choice(teleporters)
-    while t1['name'] == t2["name"]:
-        t2 = random.choice(teleporters)
 
-    t1s,t2s = link_tps(t1,t2)
 
-    teleporters.remove(t1)
-    teleporters.remove(t2)
-    to_save.append(t1s)
-    to_save.append(t2s)
     
+with tqdm(total=len(teleporters) + 1, desc="Processing", unit="pair") as pbar:
+    while len(teleporters) > 1:
+        t1, t2 = teleporters.pop(), teleporters.pop()
+        t1s, t2s = link_tps(t1, t2)
+        to_save.extend([t1s, t2s])
+    
+
+    
+
 
 
 
 
 
 data = load_all_data(maps)
-save_all_data(data,to_save)
-    
+save_all_data(data, to_save)
+
+
+
 
 
 G = build_teleporter_graph(to_save)
