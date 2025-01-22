@@ -2,7 +2,7 @@
 
 a simple python script that randomize all teleport point and area of Crosscode
 
-#How to randomize
+##How to randomize
 
 - Have python
 - extract the mod into your mod folder 
