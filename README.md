@@ -12,4 +12,4 @@ a simple python script that randomize all teleport point and area of Crosscode
 - execut the .bat file to start the randomizer if you have python 
 
 be sure to save your maps folder somewere, it is a Alpha version
-
+also install Open World patches mod if you want
