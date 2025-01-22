@@ -4,11 +4,12 @@ a simple python script that randomize all teleport point and area of Crosscode
 
 ## How to randomize
 
-- Have python
+- Have python Or not 
 - extract the mod into your mod folder 
 - COPY your maps folder from C:\Program Files (x86)\Steam\steamapps\common\CrossCode\assets\data\{maps} copy that folder
 - PASTE into cc-maprandomizer-vX  \assets\data\ {and paste your maps folder here}
-- execut the .bat file to start the randomizer
+- Execut the .exe (EXPERIMENTAL)
+- execut the .bat file to start the randomizer if you have python 
 
 be sure to save your maps folder somewere, it is a Alpha version
 
