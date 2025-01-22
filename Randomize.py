@@ -20,7 +20,7 @@ import networkx as nx
 
 
 
-
+'''
 #region NetworkX
 
 def build_teleporter_graph(teleporters):
@@ -67,8 +67,45 @@ def visualize_teleporter_graph(G):
     plt.title("Teleporter Network")
     plt.show()
 
-#endregion 
+#endregion '''
 
+#region NetworkX
+
+def build_teleporter_graph(teleporters):
+    """
+    Builds a graph of teleporters and their connections.
+    Args:
+        teleporters: List of teleporter dictionaries with their connections.
+    Returns:
+        G: A networkx graph.
+    """
+    G = nx.DiGraph()
+
+    for tp in teleporters:
+        G.add_node(tp["name"], path=tp["path"], dir=tp["dir"])
+        if tp["To"]["destination"]:
+            G.add_edge(tp["name"], tp["To"]["destination"], direction=tp["dir"])
+    
+    return G
+
+def visualize_teleporter_graph(G):
+    """
+    Visualizes the teleporter graph.
+    Args:
+        G: A networkx graph.
+    """
+    plt.figure(figsize=(12, 12))
+    pos = nx.spring_layout(G, k=10, iterations=10000)
+    nx.draw(
+        G, pos, with_labels=True, node_color="lightblue", edge_color="gray", 
+        node_size=2000, font_size=10, font_color="black", arrowsize=20
+    )
+    edge_labels = nx.get_edge_attributes(G, "direction")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+    plt.title("Teleporter Network")
+    plt.show()
+
+#endregion
 
 
 #region os
@@ -395,14 +432,50 @@ def del_marker(maps):
 
 
 
+def ensure_connectivity(teleporters):
+   
+    random.shuffle(teleporters)
+    connected = [teleporters.pop()]  # Start with one teleporter
+    unconnected = teleporters
+    connections = []
 
+    while unconnected:
+        tp1 = random.choice(connected)
+        tp2 = unconnected.pop()
+        tp1, tp2 = link_tps(tp1, tp2)
+        connections.extend([tp1, tp2])
+        connected.append(tp2)
 
+    return connections
+
+def ensure_full_connectivity(teleporters):
+    
+    G = build_teleporter_graph(teleporters)
+    components = list(nx.weakly_connected_components(G))
+    
+    while len(components) > 1:
+        # Pick a random node from one component and another from a different component
+        component1 = random.choice(components)
+        component2 = random.choice([c for c in components if c != component1])
+        node1 = random.choice(list(component1))
+        node2 = random.choice(list(component2))
+        
+        # Retrieve teleporters and link them
+        tp1 = next(tp for tp in teleporters if tp["name"] == node1)
+        tp2 = next(tp for tp in teleporters if tp["name"] == node2)
+        tp1, tp2 = link_tps(tp1, tp2)
+        
+        # Rebuild the graph and recalculate components
+        G = build_teleporter_graph(teleporters)
+        components = list(nx.weakly_connected_components(G))
+    
+    return teleporters
 
 #endregion
 
 #region Randomizer
 
-"""
+
 print("Welcome to Map Randomizer")
 print("")
 print("Do you want to set a seed? (y/n)")
@@ -412,14 +485,14 @@ if input() == 'y':
 else:
     random.seed()
 
-print("Randomize Started")"""
+print("Randomize Started")
 
 
 
 excl = ["assets\\data\\maps\\autumn\\test.json","assets\\data\\maps\\autumn\\test2.json"]
 
 
-pathbase = 'assets\\data\\maps\\autumn'
+pathbase = 'assets\\data\\maps'
 
 maps = get_maps_ex(pathbase,excl)
 
@@ -433,24 +506,19 @@ teleporters = resume(maps)
 
 del_marker(maps)
 
-random.shuffle(teleporters)
-
-
-while len(teleporters) > 1:
-    t1, t2 = teleporters.pop(), teleporters.pop()
-    t1s, t2s = link_tps(t1, t2)
-    to_save.extend([t1s, t2s])
     
+
+to_save = ensure_connectivity(teleporters)
+to_save = ensure_full_connectivity(to_save)
 
 data = load_all_data(maps)
 save_all_data(data, to_save)
 
-
-
 print("Do you want to show the teleporter graph? (y/n)")
 if input() == 'y':
-    G = build_teleporter_graph(to_save)
-    visualize_teleporter_graph(G)
+    visualize_teleporter_graph(build_teleporter_graph(to_save))
+
+
 
 
 

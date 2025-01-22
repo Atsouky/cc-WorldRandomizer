@@ -1,5 +1,5 @@
-('C:\\Program Files '
- '(x86)\\Steam\\steamapps\\common\\CrossCode\\assets\\mods\\cc-MapRandomizer-main\\build\\Randomize\\PYZ-00.pyz',
+('C:\\Games\\Projet_NSI_2024 art & '
+ 'infromatique\\Git\\cc-MapRandomizer\\build\\Randomize\\PYZ-00.pyz',
  [('PIL',
    'C:\\Users\\damie\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\PIL\\__init__.py',
    'PYMODULE'),
