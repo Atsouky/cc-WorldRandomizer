@@ -91,7 +91,7 @@ def exclude_maps(paths:list[str]):
             b[i] = a[i]
     return b
 
-def get_maps(excludepaths:list[str] = []):
+def get_maps_ex(excludepaths:list[str] = []):
     a = exclude_maps(excludepaths)
     maps = []
     for i in a.keys():
@@ -133,12 +133,22 @@ def swap_room(data1, data2, id1:int, id2:int):
     data2['entities'][id2]['settings']['map'] =  temp
     return data1, data2
 
+"""def search_id_Tp_Ground(data):
+    TeleportGround_ids = []
+    for i in range(len(data['entities'])):
+        if data['entities'][i]['type'] == 'TeleportGround':   
+            if data['entities'][i]['level'] == 1:
+                TeleportGround_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['dir'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
+    return TeleportGround_ids"""
+
 def search_id_Tp_Ground(data):
     TeleportGround_ids = []
     for i in range(len(data['entities'])):
         if data['entities'][i]['type'] == 'TeleportGround':   
-            TeleportGround_ids.append((i,data['entities'][i]['type'],data['entities'][i]['settings']['name'],data['entities'][i]['settings']['map'],data['entities'][i]['settings']['dir'],data['entities'][i]['settings']['marker'],data['entities'][i]['settings']['mapId']))
+            if data['entities'][i]['level'] == 1:
+                TeleportGround_ids.append()
     return TeleportGround_ids
+
 
 def search_id_Tp_stairs(data):
     TeleportStairs_ids = []
@@ -227,6 +237,7 @@ def resume(maps):
         data = load_json(path)
         Teleport_ids = search_all_Tp(data)        
         if Teleport_ids :
+            
             for i in Teleport_ids['Tp_Ground']:
                 
                 tp = {
@@ -270,6 +281,66 @@ def Salles(teleporters,maps):
     return Salles   
 
 
+def categorizeDir(teleporter):
+    North = []
+    South = []
+    East = []
+    West = []
+    for i in teleporter:
+        if i['dir'] == 'NORTH':
+            North.append(i) 
+        elif i['dir'] == 'SOUTH':
+            South.append(i)
+        elif i['dir'] == 'EAST':
+            East.append(i)
+        elif i['dir'] == 'WEST':
+            West.append(i)
+    
+    return North,South,East,West
+
+
+def load_all_data(maps):
+
+
+    data = {}
+
+    for path in tqdm(maps, desc='Load', unit='maps'):
+        data[path] = load_json(path)
+    return data
+def save_all_data(data,tp):
+    for i in tqdm(tp, desc='Save', unit='maps'):
+    
+        data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
+        data[i['path']]['entities'][i['id']]['settings']['marker'] = i['To']['marker']
+        data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
+        data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
+    
+
+        save_json(i['path'],data[i['path']])
+
+
+
+def place_marker(maps):
+    for path in tqdm(maps, desc='Marker', unit='maps'):
+        data = load_json(path)
+        
+        #{"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnN","dir":"SOUTH"}}]
+        tp = search_id_Tp_Ground(data)
+        
+        for i in tp:
+            if i[4] == 'NORTH':
+                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnN","dir":"SOUTH"}})
+            elif i[4] == 'SOUTH':
+                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnS","dir":"SOUTH"}})
+            elif i[4] == 'EAST':
+                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnE","dir":"SOUTH"}})
+            elif i[4] == 'WEST':
+                data['entities'].append({"type":"Marker","x":379,"y":177,"level":0,"settings":{"size":{"x":16,"y":16},"mapId":5,"name":"spawnW","dir":"SOUTH"}})
+        
+        
+        
+       
+        save_json(path,data)
 
 
 #endregion
@@ -281,59 +352,50 @@ def Salles(teleporters,maps):
 
 
 
+excl = ["assets\\data\\maps\\autumn\\test.json","assets\\data\\maps\\autumn\\test2.json"]
 
+#maps = get_maps_ex(excl)
 
-maps = get_maps()
-autmun_maps = get_maps_zone('assets\\data\\maps\\autumn')
-teleporters = resume(autmun_maps)
-salle = Salles(teleporters,maps)
+pathbase = 'assets\\data\\maps\\autumn'
 
-"""G = build_teleporter_graph(teleporters)
-visualize_teleporter_graph(G)"""
-tp = []
-tpc = []
+maps = get_maps_zone(pathbase)
+#maps = exclude_maps(excl)
 
-for i in tqdm(teleporters , desc='Teleporters_link', unit='maps'):
-    if (i['name'],i['id']) not in tpc:
-        
-        choice = random.choice(teleporters)
-        
-        while (choice['name'],choice['id']) in tpc:
-            choice = random.choice(teleporters)
-        while choice["name"] == i["name"]:
-            choice = random.choice(teleporters)
-        while choice["dir"] != i['To']['dir']:
-            choice = random.choice(teleporters)
-        while choice['To']['marker'] != markerinv2[i['To']['marker']]:
-            choice = random.choice(teleporters)
-        
-        
-        
-        a,b = link_tps(i,choice)
-        #print(a,b)
-        tpc.append((a['name'],a['id']))    
-        tpc.append((b['name'],b['id']))
-        tp.append(a)
-        tp.append(b)
-        #print(i['name'],i['id'],i['To']['destination'],choice['name'],choice['id'],choice['To']['destination'])
+for i in maps:
+    if i in excl:
+        maps.remove(i)
+
+to_save = []
+
+teleporters = resume(maps)
 
 
 
-data = {path: load_json(path) for path in maps}
+while len(teleporters) > 0:
+    t1 = random.choice(teleporters)
+    t2 = random.choice(teleporters)
+    while t1['name'] == t2["name"]:
+        t2 = random.choice(teleporters)
 
-for i in tqdm(tp, desc='Save', unit='maps'):
-    
-    data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
-    data[i['path']]['entities'][i['id']]['settings']['marker'] = i['To']['marker']
-    data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
-    data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
-    
+    t1s,t2s = link_tps(t1,t2)
 
-    save_json(i['path'],data[i['path']])
+    teleporters.remove(t1)
+    teleporters.remove(t2)
+    to_save.append(t1s)
+    to_save.append(t2s)
     
 
 
 
+
+
+data = load_all_data(maps)
+save_all_data(data,to_save)
+    
+
+
+G = build_teleporter_graph(to_save)
+visualize_teleporter_graph(G)
 
 
 
