@@ -1,7 +1,24 @@
+import sys
+sys.path.insert(0, './libs')
+
+
 import json,os,random
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
+
+
+'TODO : add doors teleporters'
+'TODO : add a pqt integration'
+'TODO : faire en sort d"installer les lib localement'
+
+
+
+
+
+
+
+
 
 
 #region NetworkX
@@ -334,29 +351,10 @@ def Salles(teleporters,maps):
     return Salles   
 
 
-def categorizeDir(teleporter):
-    North = []
-    South = []
-    East = []
-    West = []
-    for i in teleporter:
-        if i['dir'] == 'NORTH':
-            North.append(i) 
-        elif i['dir'] == 'SOUTH':
-            South.append(i)
-        elif i['dir'] == 'EAST':
-            East.append(i)
-        elif i['dir'] == 'WEST':
-            West.append(i)
-    
-    return North,South,East,West
 
 
 def load_all_data(maps):
-
-
     data = {}
-
     for path in tqdm(maps, desc='Load', unit='maps'):
         data[path] = load_json(path)
     return data
@@ -373,12 +371,16 @@ def add_marker(data,i):
     
     if dir == 'NORTH':
         my += 30
+        mx -= 8
     elif dir == 'SOUTH':
         my -= 30
+        mx -= 8
     elif dir == 'EAST':
         mx -= 30
+        my -= 8
     elif dir == 'WEST':
         mx += 30
+        my -= 8
             
     Mark = {
         "type":"Marker",
@@ -410,7 +412,7 @@ def save_all_data(data,tp):
         save_json(i['path'],data[i['path']])
 
 
-def del_marker(maps): #TODO retierer uniquement les markers avec des int (modée)
+def del_marker(maps): 
     data = load_all_data(maps)
     for i in data:
         data[i]['entities'] = [j for j in data[i]['entities'] if not (j['type'] == 'Marker' and j['settings']['name'].isdigit())]
@@ -432,7 +434,7 @@ excl = ["assets\\data\\maps\\autumn\\test.json","assets\\data\\maps\\autumn\\tes
 
 #maps = get_maps_ex(excl)
 
-pathbase = 'assets\\data\\maps\\autumn'
+pathbase = 'assets\\data\\maps'
 
 maps = get_maps_zone(pathbase)
 #maps = exclude_maps(excl)
@@ -445,7 +447,7 @@ to_save = []
 
 teleporters = resume(maps)
 
-#del_marker(maps)
+del_marker(maps)
 Seed = None
 random.seed(None)
 random.shuffle(teleporters)
@@ -454,11 +456,11 @@ random.shuffle(teleporters)
 
 
     
-with tqdm(total=len(teleporters) + 1, desc="Processing", unit="pair") as pbar:
-    while len(teleporters) > 1:
-        t1, t2 = teleporters.pop(), teleporters.pop()
-        t1s, t2s = link_tps(t1, t2)
-        to_save.extend([t1s, t2s])
+
+while len(teleporters) > 1:
+    t1, t2 = teleporters.pop(), teleporters.pop()
+    t1s, t2s = link_tps(t1, t2)
+    to_save.extend([t1s, t2s])
     
 
     
