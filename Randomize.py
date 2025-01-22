@@ -9,8 +9,8 @@ import networkx as nx
 
 
 'TODO : add doors teleporters'
-'TODO : add a pqt integration'
-'TODO : faire en sort d"installer les lib localement'
+'TODO : add ground teleporters for other heights'
+
 
 
 
@@ -95,21 +95,21 @@ def get_all_file():
         files.append(i[2])
     return files
 
-def exclude_maps(paths:list[str]):
+def exclude_maps(basepath='assets\\data\\maps',paths:list[str] = []):
     exclude = ['assets\\data\\maps']
     b = {}
     for path in paths:
         d = get_all_dir(path)
         for i in d:
             exclude.append(i)
-    a = get_all_file_and_dir()
+    a = get_all_file_and_dir(basepath)
     for i in a.keys():
         if i not in exclude:
             b[i] = a[i]
     return b
 
-def get_maps_ex(excludepaths:list[str] = []):
-    a = exclude_maps(excludepaths)
+def get_maps_ex(basepath:str = 'assets\\data\\maps',excludepaths:list[str] = []):
+    a = exclude_maps(basepath,excludepaths)
     maps = []
     for i in a.keys():
         for j in a[i]:
@@ -172,15 +172,6 @@ def search_id_Tp_Ground(data):
                                             ))
     return TeleportGround_ids
 
-"""def search_id_Tp_Ground(data):
-    TeleportGround_ids = []
-    for i in range(len(data['entities'])):
-        if data['entities'][i]['type'] == 'TeleportGround':   
-            if data['entities'][i]['level'] == 1:
-                TeleportGround_ids.append(data['entities'][i])
-    return TeleportGround_ids"""
-
-
 def search_id_Tp_stairs(data):
     TeleportStairs_ids = []
     for i in range(len(data['entities'])):
@@ -227,6 +218,11 @@ def search_all_Tp(data):
 
 
 
+
+
+
+#region edit strings
+
 def get_map_by_name(name:str):
     maps = get_all_file_and_dir()
     lst=[]
@@ -235,9 +231,6 @@ def get_map_by_name(name:str):
         if name in maps[i]:
             lst.append(i)
     return lst
-
-
-
 
 
 def count_Tp(resumed_maps):
@@ -273,6 +266,9 @@ def replace_slash(name):
     name = name.replace('/','\\')
     return name
 
+#endregion
+
+
 def resume(maps):
     Teleporters = []
 
@@ -303,12 +299,6 @@ def resume(maps):
                         "destination" : i[3],
                         "marker" : None,
                         "dir" : directinv[i[4]],
-                        "x" : None,
-                        "y" : None,
-                        "width" : None,
-                        "height" : None,
-                        "level" : None
-                        
                         }
                     }
                 Teleporters.append(tp)
@@ -321,35 +311,12 @@ def link_tps(tp1,tp2):
     
     tp1['To']['destination'] = tp2['name']
     tp1["marque"] = str(tp2["x"])+str(tp2["y"])
-    tp1["To"]["x"] = tp2["x"]
-    tp1["To"]["y"] = tp2["y"]
-    tp1["To"]["width"] = tp2["width"]
-    tp1["To"]["height"] = tp2["height"]
-    tp1["To"]["level"] = tp2["level"]
+    
     
     tp2['To']['destination'] = tp1['name']
     tp2['marque'] = str(tp1["x"])+str(tp1["y"])
-    tp2["To"]["x"] = tp1["x"]
-    tp2["To"]["y"] = tp1["y"]
-    tp2["To"]["width"] = tp1["width"]
-    tp2["To"]["height"] = tp1["height"]
-    tp2["To"]["level"] = tp1["level"]
+    
     return tp1,tp2
-
-
-def Salles(teleporters,maps):
-    # salle = [[teleporter1,teleporter2],[teleporter3,teleporter4]]
-    Salles = {}
-    salles = []
-    for path in maps:
-        for i in teleporters:
-            if i['path'] == path:
-                salles.append(i)
-        if salles != []:
-            Salles[path] = salles
-            salles = []
-    return Salles   
-
 
 
 
@@ -358,6 +325,23 @@ def load_all_data(maps):
     for path in tqdm(maps, desc='Load', unit='maps'):
         data[path] = load_json(path)
     return data
+
+
+
+def save_all_data(data,tp):
+    for i in tqdm(tp, desc='Randomize', unit='maps'):
+        
+        #Ground Teleporter
+        data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
+        data[i['path']]['entities'][i['id']]['settings']['marker'] = i['marque']
+        data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
+        data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
+        data = add_marker(data,i)
+    
+
+        save_json(i['path'],data[i['path']])
+
+
 
 def add_marker(data,i):
     path = i['path']
@@ -397,21 +381,8 @@ def add_marker(data,i):
     
     data[path]["entities"].append(Mark)
     return data
-    #{"type":"Marker","x":1011,"y":282,"level":1,"settings":{"size":{"x":16,"y":16},"mapId":207,"name":"azer","dir":"NORTH"}}
 
-def save_all_data(data,tp):
-    for i in tqdm(tp, desc='Randomize', unit='maps'):
     
-        data[i['path']]['entities'][i['id']]['settings']['map'] = i['To']['destination']
-        data[i['path']]['entities'][i['id']]['settings']['marker'] = i['marque']
-        data = add_marker(data,i)
-        data[i['path']]['entities'][i['id']]['settings']['transitionType'] = 'REGULAR'
-        data[i['path']]['entities'][i['id']]['settings']['spawnDistance'] = 46
-    
-
-        save_json(i['path'],data[i['path']])
-
-
 def del_marker(maps): 
     data = load_all_data(maps)
     for i in data:
@@ -422,22 +393,35 @@ def del_marker(maps):
         save_json(i,data[i])
 
 
+
+
+
+
+
 #endregion
 
+#region Randomizer
 
+"""
+print("Welcome to Map Randomizer")
+print("")
+print("Do you want to set a seed? (y/n)")
+if input() == 'y':
+    Seed = int(input("Seed: "))
+    random.seed(Seed)
+else:
+    random.seed()
 
-
+print("Randomize Started")"""
 
 
 
 excl = ["assets\\data\\maps\\autumn\\test.json","assets\\data\\maps\\autumn\\test2.json"]
 
-#maps = get_maps_ex(excl)
 
-pathbase = 'assets\\data\\maps'
+pathbase = 'assets\\data\\maps\\autumn'
 
-maps = get_maps_zone(pathbase)
-#maps = exclude_maps(excl)
+maps = get_maps_ex(pathbase,excl)
 
 for i in maps:
     if i in excl:
@@ -448,14 +432,9 @@ to_save = []
 teleporters = resume(maps)
 
 del_marker(maps)
-Seed = None
-random.seed(None)
+
 random.shuffle(teleporters)
 
-
-
-
-    
 
 while len(teleporters) > 1:
     t1, t2 = teleporters.pop(), teleporters.pop()
@@ -463,22 +442,17 @@ while len(teleporters) > 1:
     to_save.extend([t1s, t2s])
     
 
-    
-
-
-
-
-
-
 data = load_all_data(maps)
 save_all_data(data, to_save)
 
 
 
+print("Do you want to show the teleporter graph? (y/n)")
+if input() == 'y':
+    G = build_teleporter_graph(to_save)
+    visualize_teleporter_graph(G)
 
 
-G = build_teleporter_graph(to_save)
-visualize_teleporter_graph(G)
 
 
-
+#endregion
