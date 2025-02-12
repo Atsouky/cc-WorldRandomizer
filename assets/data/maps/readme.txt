@@ -1,3 +1,3 @@
-imput all map of crosscode and put it there 
+input all map of Crosscode and put it there 
 
-path to maps in crosscode : C:\Program Files (x86)\Steam\steamapps\common\CrossCode\assets\data\maps
+path to maps in Crosscode : C:\Program Files (x86)\Steam\steamapps\common\CrossCode\assets\data\maps

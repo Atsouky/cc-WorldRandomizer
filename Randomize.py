@@ -1,21 +1,13 @@
-import sys
-sys.path.insert(0, './libs')
-
-
-import json,os,random
-from tqdm import tqdm
+import json, os, random, re, shutil, threading
 import matplotlib.pyplot as plt
 import networkx as nx
 import tkinter as tk
 from tkinter import ttk,messagebox , filedialog
-import shutil
-import threading
-import re
 
 
-
-
-
+PATHBASE = 'assets\\data\\maps'
+ENEMY_NAME = ['arid.virus-neutral', 'arid.virus-heat', 'arid.virus-cold', 'meerkat-alt', 'meerkat', 'hedgehog', 'hedgehog-alt', 'buffalo-alt', 'buffalo', 'autumn-fall.hedgehog-fall', 'autumn-fall.seahorse-fall', 'autumn-fall.buffalo-fall', 'autumn-fall.meerkat-fall', 'forest.spider', 'gray-frobbit', 'seahorse', 'goat', 'penguin', 'frobbit', 'snowman', 'forest.bug-samurai-shock', 'forest.bug-samurai-heat', 'forest.panda', 'heat.scorpion', 'heat.drillertoise', 'heat.sandshark', 'heat.sandworm', 'heat.volturbine', 'heat.scorpion-alt', 'heat.special.volturbine-cave', 'heat.jellyfish', 'heat.moth', 'heat.heat-golem', 'heat.darth-moth', 'jungle.parrot', 'jungle.plant', 'jungle.blob', 'jungle.shockcat', 'jungle.fish', 'jungle.sloth', 'jungle.chicken', 'jungle.ghost', 'jungle.powerplant', 'jungle.blob-wave', 'jungle.octopus', 'jungle.blueray', 'mine-runbot']
+unstable_link = []
 
 #region NetworkX
 
@@ -26,11 +18,12 @@ def visualize_teleporter_graph(G):
     plt.figure(figsize=(12, 12))
 
     # Use a better layout for clearer room connections
-    pos = nx.kamada_kawai_layout(G)  # Alternative: nx.shell_layout(G)
-
+    #pos = nx.kamada_kawai_layout(G)  # Alternative: nx.shell_layout(G)
+    pos = nx.spring_layout(G, seed=42)
+    
     nx.draw(
         G, pos, with_labels=True, node_color="lightblue", edge_color="gray", 
-        node_size=2000, font_size=10, font_color="black", arrowsize=20
+        node_size=2000, font_size=10, font_color="black"
     )
 
     edge_labels = nx.get_edge_attributes(G, "direction")
@@ -47,14 +40,62 @@ def build_teleporter_graph(teleporters):
     """
     G = nx.Graph()  # Change to undirected
 
+    # Define direction inversions (if not already defined elsewhere)
+    directinv = {"NORTH": "SOUTH", "SOUTH": "NORTH", "EAST": "WEST", "WEST": "EAST"}
+
     for tp in teleporters:
         G.add_node(tp["name"], path=tp["path"], dir=tp["dir"])
 
         if tp["destination"]:
             # Ensure bidirectional linking
             G.add_edge(tp["name"], tp["destination"], direction=tp["dir"])
+            # Optionally, you could also use directinv.get(tp["dir"], "") for reverse direction
             G.add_edge(tp["destination"], tp["name"], direction=directinv.get(tp["dir"], ""))
 
+    return G
+
+
+
+def build_teleporter_graph_rooms(teleporters):
+    """
+    Builds a graph where rooms are nodes and teleporters are edges between rooms.
+    """
+    # Create the rooms first
+    rooms = create_rooms(teleporters)
+    
+    # Debugging: Print out the rooms
+    #print("Rooms:", rooms)
+    
+    G = nx.Graph()  # Use undirected graph
+
+    # Add nodes for each room
+    for room, tps in rooms.items():
+        G.add_node(room)  # Room name as the node
+        #print(f"Added room: {room}")  # Debugging: Check room addition
+    
+    # Add edges between rooms based on teleporters
+    for room, tps in rooms.items():
+        for tp in tps:
+            # Debugging: Check teleporter connections
+            #print(f"Processing teleporter: {tp['name']} between {room} and {tp['destination']}")
+            
+            # Find destination room by matching tp["destination"] to a room
+            destination_room = next(
+                (r for r, tps in rooms.items() if any(t['name'] == tp['destination'] for t in tps)),
+                None
+            )
+            
+            # Debugging: Check if destination room is found
+            if destination_room:
+                #print(f"Linking {room} <-> {destination_room} with teleporter {tp['name']}")
+                # Add edge between rooms with teleporter name as the attribute
+                G.add_edge(room, destination_room, teleporter=tp["name"])
+            #else:
+                #print(f"Warning: Could not find destination room for {tp['name']}")
+    
+    # Debugging: Print the graph edges to verify the connections
+    #print("Graph edges:", list(G.edges(data=True)))
+    
     return G
 
 
@@ -69,6 +110,7 @@ directinv = {'NORTH': 'SOUTH', 'SOUTH': 'NORTH', 'EAST': 'WEST', 'WEST': 'EAST'}
 
 
 exclusion_patterns = [
+    r"assets/data/maps/readme.txt",
     r"assets/data/maps/arena/.*",
     r"assets/data/maps/.*test.*",
     r'assets/data/maps/.*template.*',
@@ -84,6 +126,7 @@ exclusion_patterns = [
     r'assets/data/maps/dreams/.*',
     r'assets/data/maps/bmt/.*',
     r'assets/data/maps/cliff-mod.json',
+    r'assets/data/maps/rhombus-dng/.*',
     r'assets/data/maps/empty.json',
     r'assets/data/maps/.*henne.*',
     r'assets/data/maps/enemy-fishgear.json',
@@ -98,6 +141,28 @@ exclusion_patterns = [
 
 ]
 
+dng_exlusion_patterns = [
+    
+    r'assets/data/maps/arid-dng/.*',
+    r'assets/data/maps/cold-dng/.*',
+    r'assets/data/maps/heat-dng/.*',
+    r'assets/data/maps/shock-dng/.*',
+    r'assets/data/maps/tree-dng/.*',
+    r'assets/data/maps/wave-dng/.*',
+
+    ]
+    
+dng_entrance_path = [
+    
+    'assets\\data\\maps\\arid-dng\\first\\room-01.json',
+    'assets\\data\\maps\\cold-dng\\g\\center.json',
+    'assets\\data\\maps\\heat-dng\\g\\room-01.json',
+    'assets\\data\\maps\\shock-dng\\g\\room1.json',
+    'assets\\data\\maps\\tree-dng\\g\\center-01-entrance.json',
+    'assets\\data\\maps\\wave-dng\\g\\room-entrance.json'
+    
+]
+
 
 def is_excluded(file_path, exclusion_patterns):
     
@@ -106,16 +171,20 @@ def is_excluded(file_path, exclusion_patterns):
     return any(re.search(pattern, file_path) for pattern in exclusion_patterns)
 
 def get_maps_ex(path, exclusion_patterns):
+    global dng_entrance_path, chk_dungeons
     maps = []
     for root, _, files in os.walk(path):
         for file in files:
             full_path = os.path.join(root, file)
             if not is_excluded(full_path, exclusion_patterns):
                 maps.append(full_path)
+    if chk_dungeons:
+        for i in dng_entrance_path:
+            maps.append(i)
+    
     return maps
 
 #endregion
-
 
 
 #region json
@@ -161,23 +230,28 @@ def tp_name(name):
     b = split_zone(name)
     return str(b+'.'+a)
 
-def replace_slash(name):
-    name = name.replace('/','\\')
-    return name
 
 #endregion
 
+
+#region subfunctions
 def find_teleporters(maps):
+    global ENEMY_NAME
     progress_bar["value"] = 0
     teleporters = []
+    
     for path in maps:
+        
         try : data = load_json(path)
         except: messagebox.showerror("Error", "Can't open file "+path)
         
         
         progress_bar["value"] += 100/len(maps)
         for i, entity in enumerate(data['entities']):
-             
+            
+            
+            
+            
             if entity['type'] in {'TeleportGround', 'Door'} and entity['settings']['map']:
                 
                 
@@ -199,18 +273,35 @@ def find_teleporters(maps):
             
     return teleporters
 
+
 def seperated_teleporters(teleporters):
     tp1 = []
     tp2 = []
+    enemy = []
     for i in teleporters:
         if i['type'] == 'TeleportGround':
             if i["level"] == 1:
                 tp1.append(i)
             
         elif i['type'] == 'Door':
-            tp2.append(i)
-    return tp1,tp2
+            if chk_dungeons:
+                if i['path'] not in dng_entrance_path:
+                    tp2.append(i)
+            else:
+                tp2.append(i)
+        elif i['type'] == 'EnemySpawner':
+            enemy.append(i)
+            
+    return tp1, tp2
 
+
+def create_rooms(teleporters):
+    rooms = {}
+    for tp in teleporters:
+        if tp["path"] not in rooms:
+            rooms[tp["path"]] = []
+        rooms[tp['path']].append(tp)
+    return rooms
 
 
 def link_tps(tp1,tp2):
@@ -224,14 +315,9 @@ def link_tps(tp1,tp2):
     return tp1,tp2
 
 
-
-
-
-
-
 def save_all_data(data, tp):
     progress_bar["value"] = 0
-    total = len(tp)
+    total = len(tp)//2
     progress_step = 100 / total
     modified_paths = set()  # Track modified paths to batch save
 
@@ -252,15 +338,14 @@ def save_all_data(data, tp):
         add_marker(data, i)  # Assuming this modifies `data` in place
         modified_paths.add(i['path'])
 
-        
+    
 
     # Save all modified paths at the end
     for path in modified_paths:
         save_json(path, data[path])
         progress_bar["value"] += progress_step
         progress_label.config(text=f"Progress Save: {round(progress_bar['value'])}%")
-
-
+    
 
 def add_marker(data,i):
     path = i['path']
@@ -287,9 +372,9 @@ def add_marker(data,i):
             
     elif i['type'] == 'Door':
         if dir == 'NORTH':
-            my -= 24    
+            my -= 16    
         elif dir == 'SOUTH':
-            my += 24
+            my += 16
         elif dir == 'EAST':
             mx += 16
         elif dir == 'WEST':
@@ -313,27 +398,18 @@ def add_marker(data,i):
     
     data[path]["entities"].append(Mark)
     return data
+ 
 
-    
-
-def show_graph():
-    global exclusion_patterns
-    pathbase = 'assets\\data\\maps\\autumn'
-    #pathbase = 'assets\\data\\maps'
-    maps = get_maps_ex(pathbase, exclusion_patterns)
-    teleporters , doors = seperated_teleporters(find_teleporters(maps))
-    G = build_teleporter_graph(teleporters)
-    visualize_teleporter_graph(G)
-    G = build_teleporter_graph(doors)
+def show_graph(to):
+    G = build_teleporter_graph(to)
     visualize_teleporter_graph(G)
 
 
-# Folder selection and copy function
 def copy_folder_to_assets_data():
-    source_folder = filedialog.askdirectory(title="Select Folder to Copy")
+    source_folder = entry_folder.get()
     if not source_folder:
         messagebox.showwarning("No Folder Selected", "You must select a folder.")
-        return
+        quit()
 
     dest_folder = os.path.join(os.getcwd(), "assets", "data",'maps')
     os.makedirs(dest_folder, exist_ok=True)
@@ -364,7 +440,7 @@ def copy_folder_to_assets_data():
             # Update the progress bar
             progress_bar["value"] += progress_step
             progress_label.config(text=f"Copying files: {idx}/{total_files}")
-            app.update_idletasks()
+            progress_bar.update_idletasks()
 
         #messagebox.showinfo("Success", f"Folder contents successfully copied to {dest_folder}.")
     except Exception as e:
@@ -375,8 +451,163 @@ def copy_folder_to_assets_data():
 
 
 
+def verify_bidirectionality(tps):
+    for tp in tps:
+        # On recherche la destination correspondante
+        dest = [t for t in tps if t['name'] == tp['destination']]
+        if dest:  # Vérifie que la destination existe
+            dest = dest[0]  # Prend le premier élément correspondant
+            if tp['destination'] != dest['name'] and dest['destination'] == tp['name']:
+                unstable_link.append(f'{tp["name"]} <{tp["dir"]}> <-> {dest["name"]} <{dest["dir"]}>')
+        else:
+            print('no destination for', tp["name"])
+        
+
+
+
+#endregion
+
+
+#region randomize algorithm
+
+
+def connect_tp(tps, rooms):
+    global unstable_link
+    tp = tps.copy()
+    random.shuffle(tp)
+    connected = []
+    
+    while len(tp) > 2:
+        tp1 = tp.pop()
+        tp2 = tp.pop()
+        tp1, tp2 = link_tps(tp1, tp2)
+        connected.extend([tp1, tp2])
+        progress_label.config(text=f"Progress tp : {len(tp)} left")
+    comp = list(nx.connected_components(build_teleporter_graph(connected)))
+    
+    if len(tp) == 2:
+        tp1 = tp.pop()
+        tp2 = tp.pop()
+        tp1, tp2 = link_tps(tp1, tp2)
+        connected.extend([tp1, tp2])
+        comp = list(nx.connected_components(build_teleporter_graph(connected)))
+    
+    mini = len(comp)
+    while len(comp) > 7 :
+        tp = tps.copy()
+        random.shuffle(tp)
+        connected = []
+        
+        while len(tp) > 2:
+            tp1 = tp.pop()
+            tp2 = tp.pop()
+            tp1, tp2 = link_tps(tp1, tp2)
+            connected.extend([tp1, tp2])
+            progress_label.config(text=f"Progress tp : {len(comp)} : {mini} left")
+        
+        comp = list(nx.connected_components(build_teleporter_graph(connected)))
+        if mini>len(comp):
+            mini = len(comp)
+    while len(list(nx.connected_components(build_teleporter_graph(connected)))) > 1:
+        comp = list(nx.connected_components(build_teleporter_graph(connected)))
+        progress_label.config(text=f"Progress tp : 2 part")
+        indimax = 0
+        for i in range(len(comp)):
+            if len(comp[i]) > len(comp[indimax]):
+                indimax = i
+        main = comp[indimax]
+        
+        comp.remove(main)
+    
+        for i in range(len(comp)):
+            if len(comp[i]) == 0:
+                continue
+            name1 = random.choice(list(main))
+            name2 = random.choice(list(comp[i]))
+            tp1 = [i for i in connected if i["name"] == name1][0]
+            tp2 = [i for i in connected if i["name"] == name2][0]
+            
+            destination1 = [i for i in connected if i["name"] == tp1["destination"]][0]
+            destination2 = [i for i in connected if i["name"] == tp2["destination"]][0]
+            
+            if len(rooms[tp1['path']]) == 1 or len(rooms[destination1['path']]) == 1 :
+                while len(rooms[tp1['path']]) == 1 or len(rooms[destination1['path']]) == 1:
+                    
+                    #print(len((rooms[tp1['path']])), len((rooms[tp2['path']])))
+                    
+                    name1 = random.choice(list(main))
+                    name2 = random.choice(list(comp[i]))
+                    tp1 = [i for i in connected if i["name"] == name1][0]
+                    tp2 = [i for i in connected if i["name"] == name2][0]
+                    destination1 = [i for i in connected if i["name"] == tp1["destination"]][0]
+                    destination2 = [i for i in connected if i["name"] == tp2["destination"]][0]
+            progress_label.config(text=f"Progress tp : 3 part")
+            
+            connected.remove(tp1)
+            connected.remove(tp2)
+            tp1, tp2 = link_tps(tp1, tp2)
+            connected.extend([tp1, tp2])
+            unstable_link.append(f'{tp1["name"]} <{tp1["dir"]}> <-> {tp2["name"]} <{tp2["dir"]}>')
+            
+            connected.remove(destination1)
+            connected.remove(destination2)
+            destination1, destination2 = link_tps(destination1, destination2)
+            connected.extend([destination1, destination2])
+            unstable_link.append(f'{destination1["name"]} <{destination1["dir"]}> <-> {destination2["name"]} <{destination2["dir"]}>')
+            
+            main.remove(name1)
+            comp[i].remove(name2)
+            
+            
+            progress_label.config(text=f"Progress tp : {len(tp)} left")
+    
+    
+    #print('done')
+    
+    
+    return connected
+    
+
+
+
+
+
+"""def connect_tp(tps):
+    tp = tps.copy()
+    random.shuffle(tp)
+    connected = []
+    
+    while len(tp) > 2:
+        tp1 = tp.pop()
+        tp2 = tp.pop()
+        tp1, tp2 = link_tps(tp1, tp2)
+        connected.extend([tp1, tp2])
+        progress_label.config(text=f"Progress tp : {len(tp)} left")
+    comp = len(list(nx.connected_components(build_teleporter_graph(connected))))
+    atempt = 0
+    mini = comp
+    while comp > 1:
+        tp = tps.copy()
+        random.shuffle(tp)
+        connected = []
+        
+        while len(tp) > 2:
+            tp1 = tp.pop()
+            tp2 = tp.pop()
+            tp1, tp2 = link_tps(tp1, tp2)
+            connected.extend([tp1, tp2])
+            progress_label.config(text=f"Progress tp : {comp} comp, {atempt} atempt, {mini} min")
+            
+        comp = len(list(nx.connected_components(build_teleporter_graph(connected))))
+        if mini > comp: mini = comp
+        atempt += 1
+    
+    return connected"""
+
+
 
 def connect_doors(doors):
+    progress_label.config(text=f"tps")
     random.shuffle(doors)
     connected = []
     
@@ -385,129 +616,34 @@ def connect_doors(doors):
         tp2 = doors.pop()
         tp1, tp2 = link_tps(tp1, tp2)
         connected.extend([tp1, tp2])
-        progress_label.config(text=f"Progress: {len(doors)} left")
-    return connected
-
-
-
-def connect_tps(doors):
-    random.shuffle(doors)
-    door = doors.copy()
-    connected = []
-    connect = False
-    while connect == False:
-        while len(door) > 2:
-            tp1 = door.pop()
-            tp2 = door.pop()
-            tp1, tp2 = link_tps(tp1, tp2)
-            connected.extend([tp1, tp2])
-        G = build_teleporter_graph(connected)
-        if len(list(nx.connected_components(G))) == 1:
-            connect = True
-        else:
-            door = doors.copy()
-            random.shuffle(door)
-            connected = []
-    
-            
-    visualize_teleporter_graph(G)
+        progress_label.config(text=f"Progress dors: {len(doors)} left")
     
     return connected
 
-def change_tp_links(tp1,tp2,tp3,tp4):
-    """
-    link tp1 to tp3
-    link tp2 to tp4
-    """
-    
-    tp1['destination'] = tp3['name']
-    tp2['destination'] = tp4['name']
-    
-    tp1["marker"] = str(tp3["x"])+str(tp3["y"])
-    tp2['marker'] = str(tp4["x"])+str(tp4["y"])
-    
-    tp3['destination'] = tp1['name']
-    tp4['destination'] = tp2['name']
-    
-    tp3["marker"] = str(tp1["x"])+str(tp1["y"])
-    tp4['marker'] = str(tp2["x"])+str(tp2["y"])
-    
-    return tp1,tp2,tp3,tp4
-    
-    
-    
-    
-    
+        
+def randomize_enemy(maps):
+    global ENEMY_NAME
+    count = 0
+    for path in maps:
+        try : data = load_json(path)
+        except: messagebox.showerror("Error", "Can't open file "+path)
+        
+        for i, entity in enumerate(data['entities']):
+            if entity['type'] == 'EnemySpawner':
+                for j in entity['settings']['enemyTypes']:
+                    j['info']['type'] = random.choice(ENEMY_NAME)
+        
+        save_json(path, data)
+        count += 1
+        progress_label.config(text=f"Progress Enemy randomization: {round(count/len(maps)*100)}%")
 
-import random
-import networkx as nx
-
-class UnionFind:
-    def __init__(self, n):
-        self.parent = list(range(n))
-        self.rank = [1] * n
-    
-    def find(self, x):
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])  # Path compression
-        return self.parent[x]
-
-    def union(self, x, y):
-        rootX = self.find(x)
-        rootY = self.find(y)
-        if rootX != rootY:
-            if self.rank[rootX] > self.rank[rootY]:
-                self.parent[rootY] = rootX
-            elif self.rank[rootX] < self.rank[rootY]:
-                self.parent[rootX] = rootY
-            else:
-                self.parent[rootY] = rootX
-                self.rank[rootX] += 1
-            return True  # Successfully merged
-        return False  # Already connected
-
-def connect_tps(doors):
-    random.shuffle(doors)
-    uf = UnionFind(len(doors))  # Track connected components
-    connected = []
-    
-    for i in range(0, len(doors) - 1, 2):  # Pair doors sequentially
-        tp1, tp2 = doors[i], doors[i + 1]
-        tp1, tp2 = link_tps(tp1, tp2)
-        connected.extend([tp1, tp2])
-        uf.union(i, i + 1)
-
-    # Ensure full connectivity
-    G = build_teleporter_graph(connected)
-    components = list(nx.connected_components(G))
-
-    if len(components) > 1:
-        for i in range(len(components) - 1):  
-            tp1 = list(components[i])[0]  
-            tp2 = list(components[i + 1])[0]  
-            tp1, tp2 = link_tps(tp1, tp2)
-            connected.extend([tp1, tp2])
-            uf.union(tp1, tp2)
-
-    visualize_teleporter_graph(G)
-    return connected
-
-
-def create_rooms(teleporters):
-    rooms = {}
-    for tp in teleporters:
-        if tp["name"] not in rooms:
-            rooms[tp["name"]] = []
-        rooms[tp['name']].append(tp)
-    return rooms
-
-
-    
+#endregion
 
 
 # Randomization process in a separate thread
 def randomize_process(seed_value):
-    global exclusion_patterns
+    global exclusion_patterns , PATHBASE, unstable_link
+    
     if seed_value.isdigit():
         random.seed(int(seed_value))
     else:
@@ -515,176 +651,164 @@ def randomize_process(seed_value):
 
     progress_bar["value"] = 0
     progress_label.config(text="Progress: Starting randomization...")
-    progress_bar_Total['value'] = 10
+    
+    #exclusion des maps
+    maps = get_maps_ex(PATHBASE, exclusion_patterns)
     
     
-    pathbase = 'assets\\data\\maps\\autumn'
-    #pathbase = 'assets\\data\\maps'
-    maps = get_maps_ex(pathbase, exclusion_patterns)
-    
-
+    #randomize enemy
+    if enemy_random.get() == True:
+        randomize_enemy(maps)
+  
+    #init to save and shearch for all tps and doors
     to_save = []
+    to_savetp = []
     t = find_teleporters(maps)
     teleporters , doors = seperated_teleporters(t)
-
-    progress_bar_Total["value"] = 30
-    
-    #del_marker(maps)
-    
-    progress_bar_Total["value"] = 40
-
+    rooms = create_rooms(teleporters)
+    #randomize doors
     to_save = connect_doors(doors)
-    #room = create_rooms(teleporters)
+    
+    #reinit to save and randomize teleporters
+    
+    to_savetp = connect_tp(teleporters,rooms)
+    verify_bidirectionality(to_savetp)
+    
+    #print(unstable_link)
+    
+        
     
     
+    G = build_teleporter_graph_rooms(to_savetp)
+    #print('comp ',len(list(nx.connected_components(G))))
+    #threading.Thread(target=visualize_teleporter_graph, args=(G,), daemon=True).start()
     
-    progress_bar_Total["value"] = 50
+   
     
-    
-    data = {path: load_json(path) for path in maps}
-    save_all_data(data, to_save)
-    
-    progress_label.config(text="Progress: Randomizing teleporters...")
-    
-    to_save = []
-    
-    progress_bar_Total["value"] = 70
+    for i in to_savetp:
+        to_save.append(i)
     
     
-    #to_save = connect_doors(teleporters)
-    to_save = connect_tps(teleporters)
-    
-    
-    
-    if to_save is None:
-        messagebox.showerror("Error", "Failed to generate a valid teleporter network after multiple attempts!")
-        return
-
-    
-    
-    
-    progress_bar_Total["value"] = 80
-    
-    progress_label.config(text="Progress: Randomizing doors...")
+    #save teleporter randomized
     data = {path: load_json(path) for path in maps}
     save_all_data(data, to_save)
 
-       
-    progress_bar_Total["value"] = 100
+    
+    verify_bidirectionality(to_save)
+    
+    #spoiler
+    
+    os.makedirs("spoiler", exist_ok=True)
+    
+    with open("spoiler/Unstable_link.txt", "w", encoding="utf-8") as f:
+        f.write("Unstable link : \n")
+        for i in unstable_link:
+            f.write(i)
+            f.write("\n")
+        
+    with open("spoiler/spoiler.txt", "w", encoding="utf-8") as f:
+        for i in to_save:
+            f.write(f'{i["name"]} <{i["dir"]}> -> {i["destination"]}')
+            f.write("\n")
+    
+    
+    
+    
+    
     progress_bar["value"] = 100
     progress_label.config(text="Progress: Randomization complete!")
     messagebox.showinfo("Success", "Randomization complete!")
-    start_button.config(state="normal")
-    graph_button.config(state="normal")
+    
+    btn_graph = ttk.Button(root, text="Afficher le Graphe des Téléporteurs", command=lambda:show_graph(to_savetp))
+    btn_graph.pack(pady=10)
     quit()
 
 
-
-
-
-
 def start_randomization():
+    global exclusion_patterns, dng_exlusion_patterns
+    
+    if chk_dungeons.get() == True:
+        for i in dng_exlusion_patterns:
+            exclusion_patterns.append(i)
+        
+    
+    progress_bar["value"] = 0
     copy_folder_to_assets_data()
-    seed_value = seed_entry.get()
-    start_button.config(state="disabled")
-    graph_button.config(state="disabled")
+    seed_value = entry_seed.get()
+    
 
     # Start the randomization process in a separate thread
     threading.Thread(target=randomize_process, args=(seed_value,), daemon=True).start()
 
 
+#region  Tkinter UI setup
 
 
 
+default_folder = "C:/Program Files (x86)/Steam/steamapps/common/CrossCode/assets/data/maps"  # Replace with your desired default folder path
 
+def browse_folder():
+    folder_selected = filedialog.askdirectory(initialdir=default_folder)  # Start browsing from default folder
+    if folder_selected:  # Only update if a folder is selected
+        entry_folder.delete(0, tk.END)  # Clear the current entry
+        entry_folder.insert(0, folder_selected)  # Insert the selected folder path
 
+root = tk.Tk()
+root.title("Map Randomizer")
+root.geometry("800x420")  # Adjusted for the new components
+root.resizable(False, False)
 
+chk_dungeons = tk.BooleanVar()
+enemy_random = tk.BooleanVar()
 
+# Style général
+style = ttk.Style()
+style.configure("TButton", font=("Arial", 10, "bold"), padding=5)
+style.configure("TCheckbutton", font=("Arial", 10))
 
-# Tkinter UI setup
-app = tk.Tk()
-app.title("Map Randomizer")
-app.geometry("600x400")
+# Options
+chk_dungeon = ttk.Checkbutton(root, text="Ne pas randomizer dans les donjons", variable=chk_dungeons, onvalue=True, offvalue=False)
+chk_dungeon.pack(pady=2)
 
-# UI Elements
-label = tk.Label(app, text="Map Randomizer", font=("Arial", 16))
-label.pack(pady=10)
+chk_enemy = ttk.Checkbutton(root, text="Randomiser les ennemis", variable=enemy_random, onvalue=True, offvalue=False)
+chk_enemy.pack(pady=2)
 
-seed_label = tk.Label(app, text="Enter Seed (optional):")
-seed_label.pack(pady=5)
-seed_entry = tk.Entry(app)
-seed_entry.pack(pady=5)
+# Titre
+label_title = ttk.Label(root, text="Map Randomizer", font=("Arial", 14, "bold"))
+label_title.pack(pady=10)
 
-start_button = tk.Button(app, text="Start Randomization", command=start_randomization)
-start_button.pack(pady=10)
+# Entrée pour la seed
+label_seed = ttk.Label(root, text="Entrer une Seed (optionnel) :", font=("Arial", 10))
+label_seed.pack()
+entry_seed = ttk.Entry(root, font=("Arial", 10), width=20)
+entry_seed.pack(pady=5)
 
-progress_label = tk.Label(app, text="Progress:")
-progress_label.pack(pady=5)
+# Entrée pour le dossier avec une valeur par défaut
+label_folder = ttk.Label(root, text="Sélectionner un dossier :", font=("Arial", 10))
+label_folder.pack(pady=5)
 
-progress_bar_Total = ttk.Progressbar(app, orient="horizontal", length=400, mode="determinate")
-progress_bar_Total.pack(pady=5)
+# Create a frame to hold the entry and button horizontally
+folder_frame = ttk.Frame(root)
+folder_frame.pack(pady=5)
 
-progress_bar = ttk.Progressbar(app, orient="horizontal", length=400, mode="determinate")
+entry_folder = ttk.Entry(folder_frame, font=("Arial", 10), width=70)
+entry_folder.insert(0, default_folder)  # Set default folder path
+entry_folder.pack(side="left", padx=5)
+
+btn_browse = ttk.Button(folder_frame, text="Parcourir", command=browse_folder)
+btn_browse.pack(side="right")
+
+# Bouton de randomisation
+btn_randomize = ttk.Button(root, text="Démarrer la Randomisation", command=start_randomization)
+btn_randomize.pack(pady=10)
+
+# Barre de progression
+progress_label = ttk.Label(root, text="Progression :", font=("Arial", 10))
+progress_label.pack()
+progress_bar = ttk.Progressbar(root, mode="indeterminate", length=250)
 progress_bar.pack(pady=5)
 
-graph_button = tk.Button(app, text="Show Teleporter Graph", command= show_graph)
-graph_button.pack(pady=10)
 
 
-
-
-# Run the app
-app.mainloop()
-
-
-
-
-"""
-
-
-
-montrer les lien de paranté entre l'espece humaine et les autres primates
-
-
-pour voire si on a un lien de parentée avec les primate on va dabord regarder ce qu'est un lien de parantée entre espece
-
-on dit qu'un espece a un lien de parentée quant ces deux espece on un caractère commun comme par exemple les ongle / les griffe
-une lien de parentée ne veux pas dire que l'on déscent de cette espece mais plutot qu'un encètre commun a eu un mutation qui a 
-donnée une nouvelle ligné d'espece.
-
-donc pour les primate et les humain nous avons de nombreux caractère commun :
-- ongle 
-- pouce inverser
-- poile 
-- petite queue -> coxys
-- plissement accru du cortex
-- fusion des os du poignet
-- orbite en avant 
-
-
-
-
-
-
-
-
-
-
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Lancement de l'interface
+tk.mainloop()
