@@ -5,9 +5,57 @@ import tkinter as tk
 from tkinter import ttk,messagebox , filedialog
 
 
+
 PATHBASE = 'assets\\data\\maps'
-ENEMY_NAME = ['arid.virus-neutral', 'arid.virus-heat', 'arid.virus-cold', 'meerkat-alt', 'meerkat', 'hedgehog', 'hedgehog-alt', 'buffalo-alt', 'buffalo', 'autumn-fall.hedgehog-fall', 'autumn-fall.seahorse-fall', 'autumn-fall.buffalo-fall', 'autumn-fall.meerkat-fall', 'forest.spider', 'gray-frobbit', 'seahorse', 'goat', 'penguin', 'frobbit', 'snowman', 'forest.bug-samurai-shock', 'forest.bug-samurai-heat', 'forest.panda', 'heat.scorpion', 'heat.drillertoise', 'heat.sandshark', 'heat.sandworm', 'heat.volturbine', 'heat.scorpion-alt', 'heat.special.volturbine-cave', 'heat.jellyfish', 'heat.moth', 'heat.heat-golem', 'heat.darth-moth', 'jungle.parrot', 'jungle.plant', 'jungle.blob', 'jungle.shockcat', 'jungle.fish', 'jungle.sloth', 'jungle.chicken', 'jungle.ghost', 'jungle.powerplant', 'jungle.blob-wave', 'jungle.octopus', 'jungle.blueray', 'mine-runbot']
+ENEMY_NAME = ['arid.virus-cold', 'arid.virus-neutral', 'arid.virus-heat', 'arid.shredder-cold', 'arid.shredder-wave',
+              'arid.shredder-heat', 'arid.shredder-shock', 'arid.mega-laser', 'arid.evotar', 'arid.laser-catcher',
+              'special.sergey-hax2', 'arid.dice-mage', 'arid.rhino', 'arid.snail', 'special.sergey-hax', 'arid.element-turret',
+              'meerkat-special-command-1', 'meerkat-alt', 'meerkat', 'hedgehog', 'autumn-fall.meerkat-fall', 'autumn-fall.ball',
+              'hedgehog-alt', 'buffalo-alt', 'buffalo', 'autumn-rh.buffel-sick-1', 'hedgehog-fly', 'baggy-kun', 'autumn-fall.hedgehog-fall',
+              'autumn-fall.seahorse-fall', 'autumn-fall.buffalo-fall', 'forest.spider', 'autumn-fall.buffalo-fire-quest',
+              'autumn-fall.raid-pillar-large', 'autumn-fall.raid-pillar-small', 'beach.ape-beach', 'snowman-xmas', 'cold.coldbug-quest-bombing-1',
+              'cold.turret-monks-invinc', 'frobbit', 'penguin', 'gray-frobbit', 'seahorse', 'goat', 'snowtank', 'cold.frobbit-quest-dirty',
+              'snowman', 'goat-cave', 'legend-frobbit', 'cold.goat-worker', 'cold.parrot-gangster-3', 'cold.goat-father', 'default',
+              'killer-mouse-bot', 'simple-bot', 'mouse-bot', 'reflector-bot', 'shredder', 'turret-bot', 'target-bot', 'turret-large',
+              'forest.bug-samurai-shock', 'forest.bug-samurai-heat', 'forest.panda', 'forest.bamboo-fountain', 'avatar.wervyn',
+              'forest.kamikater', 'jungle.fish-gear', 'heat.scorpion-robo', 'heat.scorpion', 'heat.drillertoise', 'heat.sandshark',
+              'heat.sandworm', 'heat.volturbine', 'heat.scorpion-alt', 'heat.special.baki-turret_2', 'heat.special.kamikatze-helper',
+              'heat.special.drillertoise-quest-heatAdv-1', 'heat.special.volturbine-cave', 'heat.special.sand-moth-1', 'heat.antlion',
+              'heat.jellyfish', 'heat.moth', 'heat.heat-golem', 'heat.megamoth', 'heat.darth-moth', 'heat.special.baki-cmd_bot', 
+              'heat.special.baki-turret_1', 'heat.special.brew-machine', 'heat.special.brew-bubbler', 'heat.special.heat-golem-booze',
+              'jungle.parrot', 'jungle.plant', 'jungle.blob', 'jungle.shockcat', 'jungle.algorithm', 'jungle.special.aircon',
+              'jungle.special.snowman-jungle-1', 'jungle.special.heater', 'jungle.special.iceWall', 'jungle.special.turret-defense-1',
+              'jungle.special.guard', 'jungle.special.capture-cage-1', 'jungle.fish', 'jungle.special.plant-hidden-shock', 'jungle.sloth',
+              'jungle.pumpkin', 'jungle.special.powerplant-quest-1', 'jungle.special.ghost-toxic', 'jungle.special.hostage-1',
+              'jungle.special.parrot-gangster-1', 'jungle.special.parrot-gangster-2', 'greenlight', 'turret-rhombus', 'rhombus.meerkat-car',
+              'rhombus.meerkat-delorean', 'cold.goat-father-2', 'autumn-fall.runbot-tremor', 'turret-rhg-1', 'autumn-rh.big_turret-quest_naval_ally',
+              'autumn-rh.turret_float-quest_naval', 'autumn-rh.suicider_float-quest_naval', 'autumn-rh.turret_big_float-quest_naval', 'jungle.chicken',
+              'jungle.ghost', 'jungle.powerplant', 'jungle.octopus', 'jungle.blueray', 'jungle.blob-wave']
+
+BOSS = ['arid.element-turret-boss', 'boss.elephant', 'boss-extra', 'minibosses.blue-hedge', 'minibosses.raid-dispenser',
+        'minibosses.raid-core', 'boss.designer-1', 'minibosses.penguin-rapper', 'minibosses.snow-megatank', 'minibosses.spider-black',
+        'minibosses.henry-probe', 'minibosses.cursed-sandshark', 'guest.glitch-boss', 'minibosses.sloth-black',
+        'jungle.special.snowman-jungle-boss-scene', 'minibosses.shockcat-black', 'minibosses.deep-fish', 'jungle.special.parrot-gangster-boss-1',
+        'autumn-rh.turret_boss-quest_naval', 'jungle.shockboss', 'jungle.ape-boss', 'jungle.whale-boss', 'arid.element-turret-boss', 
+        'boss.designer-2', 'boss.elephant', 'boss-extra', 'minibosses.blue-hedge', 'minibosses.raid-dispenser', 'minibosses.raid-face',
+        'minibosses.raid-core', 'minibosses.raid-laser', 'boss.designer-1', 'minibosses.penguin-rapper', 'minibosses.snow-megatank', 
+        'boss-test', 'minibosses.spider-black', 'minibosses.panda-boss', 'minibosses.henry-probe', 'forest.samurai-boss', 'minibosses.cursed-sandshark',
+        'heat.sandworm-boss', 'guest.glitch-boss', 'minibosses.sloth-black', 'jungle.special.snowman-jungle-boss-scene', 'jungle.special.snowman-jungle-boss',
+        'minibosses.shockcat-black', 'minibosses.deep-fish', 'jungle.special.parrot-gangster-boss-1', 'turret-boss', 'autumn-rh.turret_boss-quest_naval',
+        'jungle.shockboss', 'jungle.ape-boss', 'jungle.whale-boss', 'jungle.waveboss']
+
+
+
+
+
+
 unstable_link = []
+
+
+
+
+
+
 
 #region NetworkX
 
@@ -236,7 +284,7 @@ def tp_name(name):
 
 #region subfunctions
 def find_teleporters(maps):
-    global ENEMY_NAME
+
     progress_bar["value"] = 0
     teleporters = []
     
@@ -372,13 +420,17 @@ def add_marker(data,i):
             
     elif i['type'] == 'Door':
         if dir == 'NORTH':
-            my -= 16    
+            my -= 24
+            mx -= 8    
         elif dir == 'SOUTH':
             my += 16
+            mx -= 8
         elif dir == 'EAST':
             mx += 16
+            
         elif dir == 'WEST':
-            mx -= 16
+            mx -= 32
+            
             
     if i['type'] == 'TeleportGround': d = directinv[dir]
     else: d = dir
@@ -570,42 +622,6 @@ def connect_tp(tps, rooms):
 
 
 
-
-
-"""def connect_tp(tps):
-    tp = tps.copy()
-    random.shuffle(tp)
-    connected = []
-    
-    while len(tp) > 2:
-        tp1 = tp.pop()
-        tp2 = tp.pop()
-        tp1, tp2 = link_tps(tp1, tp2)
-        connected.extend([tp1, tp2])
-        progress_label.config(text=f"Progress tp : {len(tp)} left")
-    comp = len(list(nx.connected_components(build_teleporter_graph(connected))))
-    atempt = 0
-    mini = comp
-    while comp > 1:
-        tp = tps.copy()
-        random.shuffle(tp)
-        connected = []
-        
-        while len(tp) > 2:
-            tp1 = tp.pop()
-            tp2 = tp.pop()
-            tp1, tp2 = link_tps(tp1, tp2)
-            connected.extend([tp1, tp2])
-            progress_label.config(text=f"Progress tp : {comp} comp, {atempt} atempt, {mini} min")
-            
-        comp = len(list(nx.connected_components(build_teleporter_graph(connected))))
-        if mini > comp: mini = comp
-        atempt += 1
-    
-    return connected"""
-
-
-
 def connect_doors(doors):
     progress_label.config(text=f"tps")
     random.shuffle(doors)
@@ -618,11 +634,17 @@ def connect_doors(doors):
         connected.extend([tp1, tp2])
         progress_label.config(text=f"Progress dors: {len(doors)} left")
     
+    if len(doors) == 2:
+        tp1 = doors.pop()
+        tp2 = doors.pop()
+        tp1, tp2 = link_tps(tp1, tp2)
+        connected.extend([tp1, tp2])
+    
     return connected
 
         
 def randomize_enemy(maps):
-    global ENEMY_NAME
+    global ENEMY_NAME, BOSS
     count = 0
     for path in maps:
         try : data = load_json(path)
@@ -632,6 +654,12 @@ def randomize_enemy(maps):
             if entity['type'] == 'EnemySpawner':
                 for j in entity['settings']['enemyTypes']:
                     j['info']['type'] = random.choice(ENEMY_NAME)
+        
+        for i, entity in enumerate(data['entities']):
+            if entity['type'] == 'Enemy':
+                entity['settings']["enemyInfo"]['type'] = random.choice(BOSS)
+                
+        
         
         save_json(path, data)
         count += 1
@@ -644,10 +672,37 @@ def randomize_enemy(maps):
 def randomize_process(seed_value):
     global exclusion_patterns , PATHBASE, unstable_link
     
+    
+    
+    
     if seed_value.isdigit():
         random.seed(int(seed_value))
+        seed = int(seed_value)
     else:
-        random.seed()
+        seed = random.randint(2**32)
+        random.seed(seed)
+    
+    os.makedirs('assets\\data\\maps', exist_ok=True)
+    pack = {
+        
+        "name": "world-map-randomizer", 
+        "ccmodHumanName": "World Randomizer", 
+        "description": "Randomizes the world, seed : "+str(seed), 
+        "homepage": "https://github.com/Atsouky/cc-MapRandomizer", 
+        "license": "MIT", 
+        "author": "Atsouky",
+        "version": "0.7.0",
+        "ccmodDependencies": {
+            "open-world": "^0.4.1"
+        }
+        
+
+    }
+    with open('package.json', 'w', encoding='utf-8') as f:
+        f.write(f'{json.dumps(pack, indent=4)}\n')    
+        
+        
+    
 
     progress_bar["value"] = 0
     progress_label.config(text="Progress: Starting randomization...")
@@ -667,34 +722,37 @@ def randomize_process(seed_value):
     teleporters , doors = seperated_teleporters(t)
     rooms = create_rooms(teleporters)
     #randomize doors
-    to_save = connect_doors(doors)
+    if random_doors.get(): 
+        to_save = connect_doors(doors)
     
     #reinit to save and randomize teleporters
-    
-    to_savetp = connect_tp(teleporters,rooms)
-    verify_bidirectionality(to_savetp)
-    
-    #print(unstable_link)
-    
+    if random_world.get():
+        to_savetp = connect_tp(teleporters,rooms)
+        verify_bidirectionality(to_savetp)
+        
+        #print(unstable_link)
+        
+            
+        
+        
+        G = build_teleporter_graph_rooms(to_savetp)
+        #print('comp ',len(list(nx.connected_components(G))))
+        #threading.Thread(target=visualize_teleporter_graph, args=(G,), daemon=True).start()
         
     
-    
-    G = build_teleporter_graph_rooms(to_savetp)
-    #print('comp ',len(list(nx.connected_components(G))))
-    #threading.Thread(target=visualize_teleporter_graph, args=(G,), daemon=True).start()
-    
-   
-    
-    for i in to_savetp:
-        to_save.append(i)
+        
+        for i in to_savetp:
+            to_save.append(i)
     
     
     #save teleporter randomized
     data = {path: load_json(path) for path in maps}
+    
     save_all_data(data, to_save)
 
     
-    verify_bidirectionality(to_save)
+    if random_world.get():
+        verify_bidirectionality(to_save)
     
     #spoiler
     
@@ -712,7 +770,12 @@ def randomize_process(seed_value):
             f.write("\n")
     
     
+
     
+    os.makedirs(f"World_Rando_mods_{seed}", exist_ok=True)
+    shutil.move("spoiler", f"World_Rando_mods_{seed}")
+    shutil.move("assets", f"World_Rando_mods_{seed}")
+    shutil.move("package.json", f"World_Rando_mods_{seed}")
     
     
     progress_bar["value"] = 100
@@ -726,6 +789,10 @@ def randomize_process(seed_value):
 
 def start_randomization():
     global exclusion_patterns, dng_exlusion_patterns
+    
+    if chk_dungeons.get() == False and enemy_random.get() == False and random_bosses.get() == False and random_doors.get() == False and random_world.get() == False:
+        messagebox.showerror("Error", "No randomizer option selected.")
+        return
     
     if chk_dungeons.get() == True:
         for i in dng_exlusion_patterns:
@@ -755,11 +822,17 @@ def browse_folder():
 
 root = tk.Tk()
 root.title("Map Randomizer")
-root.geometry("800x420")  # Adjusted for the new components
+root.geometry("800x500")  # Adjusted for the new components
 root.resizable(False, False)
 
 chk_dungeons = tk.BooleanVar()
 enemy_random = tk.BooleanVar()
+random_doors = tk.BooleanVar()
+random_world = tk.BooleanVar()
+random_bosses = tk.BooleanVar()
+
+random_doors.set(True)
+random_world.set(True)
 
 # Style général
 style = ttk.Style()
@@ -772,6 +845,15 @@ chk_dungeon.pack(pady=2)
 
 chk_enemy = ttk.Checkbutton(root, text="Randomiser les ennemis", variable=enemy_random, onvalue=True, offvalue=False)
 chk_enemy.pack(pady=2)
+
+chk_boss = ttk.Checkbutton(root, text="Randomiser les boss", variable=random_bosses, onvalue=True, offvalue=False)
+chk_boss.pack(pady=2)
+
+chk_doors = ttk.Checkbutton(root, text="Randomiser les portes", variable=random_doors, onvalue=True, offvalue=False)
+chk_doors.pack(pady=2)
+
+chk_world = ttk.Checkbutton(root, text="Randomiser le monde", variable=random_world, onvalue=True, offvalue=False)
+chk_world.pack(pady=2)
 
 # Titre
 label_title = ttk.Label(root, text="Map Randomizer", font=("Arial", 14, "bold"))
