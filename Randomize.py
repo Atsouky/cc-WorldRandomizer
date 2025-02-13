@@ -279,6 +279,23 @@ def tp_name(name):
     return str(b+'.'+a)
 
 
+
+def tp_name2(path):
+    # Extract the part after "maps\\"
+    path = re.sub(r'.*?maps[\\/]', '', path)
+
+    # Replace slashes and backslashes with dots
+    path = re.sub(r'[\\/]', '.', path)
+
+    # Remove the file extension
+    path = os.path.splitext(path)[0]
+    
+    return path
+    
+    
+    
+
+
 #endregion
 
 
@@ -679,7 +696,7 @@ def randomize_process(seed_value):
         random.seed(int(seed_value))
         seed = int(seed_value)
     else:
-        seed = random.randint(2**32)
+        seed = random.randrange(2**32)
         random.seed(seed)
     
     os.makedirs('assets\\data\\maps', exist_ok=True)
