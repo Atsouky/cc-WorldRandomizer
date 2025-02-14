@@ -1,4 +1,4 @@
-# CrossCode Map Randomizer
+# CrossCode World Randomizer
 
 This mod randomizes all locations in Croscode.
 
