@@ -24,7 +24,7 @@ This mod randomizes all locations in Croscode.
 - if you want the spoiler it is in the `World_Rando_mods_{seed}/spolier/spoiler.txt` file
 - Back up your original game files before using the randomizer.
 - If you experience any issues, you can restore the original maps by replacing them with your backup.
-- note : I'm french soo sorry for my poor english
+- note : I'm French, so sorry for my poor English
 
 ## Bugs
 
