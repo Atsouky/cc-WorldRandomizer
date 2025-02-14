@@ -14,12 +14,18 @@ This mod randomizes all locations in Croscode.
 
 ## Usage
 1. Open the application.
-2. Select your CrossCode maps folder. (`Crosscode/assets/data/maps`)
+2. Select your CrossCode maps folder. (`.../Crosscode/assets/data/maps`)
 3. Choose the randomization options you want.
 4. Click the **Randomize** button.
 5. it will create a folder like `World_Rando_mods_{seed}` and put it in you mods folder
-7. Launch CrossCode and enjoy the randomized world!
+7. Launch CrossCode and enjoy the randomized world! (and verify in opition if it is active)
 
 ## Notes
+- if you want the spoiler it is in the `World_Rando_mods_{seed}/spolier/spoiler.txt` file
 - Back up your original game files before using the randomizer.
 - If you experience any issues, you can restore the original maps by replacing them with your backup.
+- note : I'm french soo sorry for my poor english
+
+## Bugs
+
+- there a some error when linking maps it will be repertoried into the `World_Rando_mods_{seed}/spolier/unstable_link.txt` file
