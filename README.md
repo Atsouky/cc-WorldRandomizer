@@ -1,33 +1,36 @@
-# CrossCode World Randomizer
+# CrossCode World Randomizer  
 
-This mod randomizes all locations in Croscode.
+This mod randomizes all locations in CrossCode.  
 
-## Features
-- Randomizes all locations in the game (zone, doors).
-- Simple interface: select the game's maps folder, choose your options, and click "Randomize".
-- Customizable settings for different playstyles (random : enemies, unique enemies, bosses ).
+## Features  
+- Randomizes all locations in the game (zones, doors).  
+- Simple interface: select the game's map folder, choose your options, and click "Randomize."  
+- Customizable settings for different playstyles (randomized enemies, unique enemies, bosses).  
 
-## Installation
-1. Download the latest release from [GitHub Releases](https://github.com/Atsouky/cc-WorldRandomizer/releases/tag/v0.7.2).
-2. Put the files into a folder of your choice.
-3. Run the application (`Randomize.exe`).
+## Installation  
+1. Download the latest release from [GitHub Releases](https://github.com/Atsouky/cc-WorldRandomizer/releases/tag/v0.7.2).  
+2. Extract the files into a folder of your choice.  
+3. Run the application (`Randomize.exe`).  
 
-## Usage
-1. Open the application.
-2. Select your CrossCode maps folder. (`.../Crosscode/assets/data/maps`)
-3. Choose the randomization options you want.
-4. Click the **Randomize** button.
-5. It will create a folder like `World_Rando_mods_{seed}` and put it in you mods folder
-7. Launch CrossCode and enjoy the randomized world! (and verify in opition if it is active)
+## Usage  
+1. Open the application.  
+2. Select your CrossCode maps folder (`.../CrossCode/assets/data/maps`).  
+3. Choose the randomization options you want.  
+4. Click the "Randomize" button.  
+5. A folder named `World_Rando_mods_{seed}` will be created in your folder.
+6. Place the `World_Rando_mods_{seed}` folder into your mods folder
+7. Launch CrossCode and ensure the mod is active in the options.  
 
-## Notes
-- If you want the spoiler it is in the `World_Rando_mods_{seed}/spolier/spoiler.txt` file
-- Back up your original game files before using the randomizer.
-- If you experience any issues, you can restore the original maps by replacing them with your backup.
-- PS : I'm French, so sorry for my poor English
+## Notes  
+- If you want the spoiler file, you can find it in `World_Rando_mods_{seed}/spoiler/spoiler.txt`.  
+- Back up your original game files before using the randomizer.  
+- If you experience issues, you can restore the original maps using your backup.  
 
-## Bugs
-- Only level 1 height randomize (because i don't who da f*ck put 8 TeleporterGround in the guilde.entrance maps and i think this is not isolated (unreachable Teleporter Ground))
-- And there is TeleporterGround use for developper debugging, so we teleporte into the void or the ground (there is one in autumn.path6)
-- There is some error when linking maps it will be listed in the `World_Rando_mods_{seed}/spolier/unstable_link.txt` file
-- If you randomize enemies, no problem. But if you randomize bosses or unique enemies, it will mainly result in softlocks by enemies that require other enemies to beat or immortal enemies.
+> **PS:** I'm French, so sorry if my English isn't perfect!  
+
+## Known Issues  
+- Only level 1 height is randomized because some maps (e.g., `guilde.entrance` like *8* teleporters, 5 of which are inaccessible) contain multiple `TeleporterGround`, leading to unreachable areas.  
+- Some `TeleporterGround` are used for developer debugging, which can teleport players into the void or the ground (e.g., in `autumn.path6` in the wall).  
+- There may be errors when linking maps; they will be listed in `World_Rando_mods_{seed}/spoiler/unstable_link.txt`.  
+- Randomizing enemies works fine, but randomizing bosses or unique enemies can cause softlocks due to enemy dependencies or invulnerable enemies.  
+
