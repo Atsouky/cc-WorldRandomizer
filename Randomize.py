@@ -226,7 +226,7 @@ def get_maps_ex(path, exclusion_patterns):
             full_path = os.path.join(root, file)
             if not is_excluded(full_path, exclusion_patterns):
                 maps.append(full_path)
-    if chk_dungeons:
+    if not chk_dungeons:
         for i in dng_entrance_path:
             maps.append(i)
     
@@ -349,7 +349,7 @@ def seperated_teleporters(teleporters):
                 tp1.append(i)
             
         elif i['type'] == 'Door':
-            if chk_dungeons:
+            if not chk_dungeons:
                 if i['path'] not in dng_entrance_path:
                     tp2.append(i)
             else:
@@ -572,11 +572,13 @@ def connect_tp(tps, rooms):
             tp2 = tp.pop()
             tp1, tp2 = link_tps(tp1, tp2)
             connected.extend([tp1, tp2])
-            progress_label.config(text=f"Progress tp : {len(comp)} : {mini} left")
+            progress_label.config(text=f"Progress tp : part 1")
         
         comp = list(nx.connected_components(build_teleporter_graph(connected)))
         if mini>len(comp):
             mini = len(comp)
+        progress_bar["value"] += 1
+        
     while len(list(nx.connected_components(build_teleporter_graph(connected)))) > 1:
         comp = list(nx.connected_components(build_teleporter_graph(connected)))
         progress_label.config(text=f"Progress tp : 2 part")
@@ -799,7 +801,7 @@ def randomize_process(seed_value):
     progress_label.config(text="Progress: Randomization complete!")
     messagebox.showinfo("Success", "Randomization complete!")
     
-    btn_graph = ttk.Button(root, text="Afficher le Graphe des Téléporteurs", command=lambda:show_graph(to_savetp))
+    btn_graph = ttk.Button(root, text="Show graphs (experimental)", command=lambda:show_graph(to_savetp))
     btn_graph.pack(pady=10)
     quit()
 
@@ -811,7 +813,7 @@ def start_randomization():
         messagebox.showerror("Error", "No randomizer option selected.")
         return
     
-    if chk_dungeons.get() == True:
+    if chk_dungeons.get() == False:
         for i in dng_exlusion_patterns:
             exclusion_patterns.append(i)
         
@@ -857,19 +859,19 @@ style.configure("TButton", font=("Arial", 10, "bold"), padding=5)
 style.configure("TCheckbutton", font=("Arial", 10))
 
 # Options
-chk_dungeon = ttk.Checkbutton(root, text="Ne pas randomizer dans les donjons", variable=chk_dungeons, onvalue=True, offvalue=False)
+chk_dungeon = ttk.Checkbutton(root, text="Randomize dungeons", variable=chk_dungeons, onvalue=True, offvalue=False)
 chk_dungeon.pack(pady=2)
 
-chk_enemy = ttk.Checkbutton(root, text="Randomiser les ennemis", variable=enemy_random, onvalue=True, offvalue=False)
+chk_enemy = ttk.Checkbutton(root, text="Randomize enemies", variable=enemy_random, onvalue=True, offvalue=False)
 chk_enemy.pack(pady=2)
 
-chk_boss = ttk.Checkbutton(root, text="Randomiser les boss", variable=random_bosses, onvalue=True, offvalue=False)
+chk_boss = ttk.Checkbutton(root, text="Randomize bosses and unique monsters", variable=random_bosses, onvalue=True, offvalue=False)
 chk_boss.pack(pady=2)
 
-chk_doors = ttk.Checkbutton(root, text="Randomiser les portes", variable=random_doors, onvalue=True, offvalue=False)
+chk_doors = ttk.Checkbutton(root, text="Randomise doors", variable=random_doors, onvalue=True, offvalue=False)
 chk_doors.pack(pady=2)
 
-chk_world = ttk.Checkbutton(root, text="Randomiser le monde", variable=random_world, onvalue=True, offvalue=False)
+chk_world = ttk.Checkbutton(root, text="Randomise world", variable=random_world, onvalue=True, offvalue=False)
 chk_world.pack(pady=2)
 
 # Titre
@@ -877,13 +879,13 @@ label_title = ttk.Label(root, text="Map Randomizer", font=("Arial", 14, "bold"))
 label_title.pack(pady=10)
 
 # Entrée pour la seed
-label_seed = ttk.Label(root, text="Entrer une Seed (optionnel) :", font=("Arial", 10))
+label_seed = ttk.Label(root, text="Enter a Seed (optionnal) :", font=("Arial", 10))
 label_seed.pack()
 entry_seed = ttk.Entry(root, font=("Arial", 10), width=20)
 entry_seed.pack(pady=5)
 
 # Entrée pour le dossier avec une valeur par défaut
-label_folder = ttk.Label(root, text="Sélectionner un dossier :", font=("Arial", 10))
+label_folder = ttk.Label(root, text="Select a Folder :", font=("Arial", 10))
 label_folder.pack(pady=5)
 
 # Create a frame to hold the entry and button horizontally
@@ -894,11 +896,11 @@ entry_folder = ttk.Entry(folder_frame, font=("Arial", 10), width=70)
 entry_folder.insert(0, default_folder)  # Set default folder path
 entry_folder.pack(side="left", padx=5)
 
-btn_browse = ttk.Button(folder_frame, text="Parcourir", command=browse_folder)
+btn_browse = ttk.Button(folder_frame, text="Browse", command=browse_folder)
 btn_browse.pack(side="right")
 
 # Bouton de randomisation
-btn_randomize = ttk.Button(root, text="Démarrer la Randomisation", command=start_randomization)
+btn_randomize = ttk.Button(root, text="Start randomization", command=start_randomization)
 btn_randomize.pack(pady=10)
 
 # Barre de progression
