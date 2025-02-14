@@ -27,5 +27,7 @@ This mod randomizes all locations in Croscode.
 - PS : I'm French, so sorry for my poor English
 
 ## Bugs
-
-- there a some error when linking maps it will be repertoried into the `World_Rando_mods_{seed}/spolier/unstable_link.txt` file
+- Only level 1 height randomize (because i don't who da f*ck put 8 TeleporterGround in the guilde.entrance maps and i think this is not isolated (unreachable Teleporter Ground))
+- And there is TeleporterGround use for developper debugging, so we teleporte into the void or the ground (there is one in autumn.path6)
+- There is some error when linking maps it will be listed in the `World_Rando_mods_{seed}/spolier/unstable_link.txt` file
+- If you randomize enemies, no problem. But if you randomize bosses or unique enemies, it will mainly result in softlocks by enemies that require other enemies to beat or immortal enemies.
