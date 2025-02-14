@@ -8,7 +8,7 @@ This mod randomizes all locations in CrossCode.
 - Customizable settings for different playstyles (randomized enemies, unique enemies, bosses).  
 
 ## Installation  
-1. Download the latest release from [GitHub Releases](https://github.com/Atsouky/cc-WorldRandomizer/releases/tag/v0.7.2).  
+1. Download the latest release from [GitHub Releases](https://github.com/Atsouky/cc-WorldRandomizer/releases/tag/v0.7.3).  
 2. Extract the files into a folder of your choice.  
 3. Run the application (`Randomize.exe`).  
 
