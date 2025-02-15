@@ -44,7 +44,7 @@ BOSS = ['arid.element-turret-boss', 'boss.elephant', 'boss-extra', 'minibosses.b
         'minibosses.shockcat-black', 'minibosses.deep-fish', 'jungle.special.parrot-gangster-boss-1', 'turret-boss', 'autumn-rh.turret_boss-quest_naval',
         'jungle.shockboss', 'jungle.ape-boss', 'jungle.whale-boss', 'jungle.waveboss']
 
-
+All_Enemies = ENEMY_NAME + BOSS
 
 
 
@@ -186,6 +186,7 @@ exclusion_patterns = [
     r"assets/data/maps/room1-old.json",
     r"assets/data/maps/room2.json",
     r'assets/data/maps/cargo-ship/.*',
+    r'assets/data/maps/rookie-harbor/north2.json',
 
 ]
 
@@ -226,7 +227,7 @@ def get_maps_ex(path, exclusion_patterns):
             full_path = os.path.join(root, file)
             if not is_excluded(full_path, exclusion_patterns):
                 maps.append(full_path)
-    if not chk_dungeons:
+    if not chk_dungeons.get():
         for i in dng_entrance_path:
             maps.append(i)
     
@@ -349,7 +350,7 @@ def seperated_teleporters(teleporters):
                 tp1.append(i)
             
         elif i['type'] == 'Door':
-            if not chk_dungeons:
+            if not chk_dungeons.get():
                 if i['path'] not in dng_entrance_path:
                     tp2.append(i)
             else:
@@ -663,7 +664,7 @@ def connect_doors(doors):
 
         
 def randomize_enemy(maps):
-    global ENEMY_NAME, BOSS
+    global ENEMY_NAME, BOSS, All_Enemies
     count = 0
     for path in maps:
         try : data = load_json(path)
@@ -676,7 +677,10 @@ def randomize_enemy(maps):
         
         for i, entity in enumerate(data['entities']):
             if entity['type'] == 'Enemy':
-                entity['settings']["enemyInfo"]['type'] = random.choice(BOSS)
+                choice = random.choice(All_Enemies)
+                entity['settings']["enemyInfo"]['type'] = choice
+                if choice in BOSS:
+                    All_Enemies.remove(choice)
                 
         
         
