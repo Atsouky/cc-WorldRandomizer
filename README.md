@@ -22,6 +22,7 @@ This mod randomizes all locations in CrossCode.
 7. Launch CrossCode and ensure the mod is active in the options.  
 
 ## Notes  
+- The tutorial is not randomize because of all ablilities not been unlock yet so it start at rookie harbor
 - If you want the spoiler file, you can find it in `World_Rando_mods_{seed}/spoiler/spoiler.txt`.  
 - Back up your original game files before using the randomizer.  
 - If you experience issues, you can restore the original maps using your backup.  
