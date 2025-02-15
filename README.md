@@ -9,7 +9,7 @@ This mod randomizes all locations in CrossCode.
 
 ## Installation  
 1. Download the latest release from [GitHub Releases](https://github.com/Atsouky/cc-WorldRandomizer/releases/tag/v0.7.3).  
-2. Extract the files into a folder of your choice.  
+2. Put the files into a folder of your choice.  
 3. Run the application (`Randomize.exe`).  
 
 ## Usage  
