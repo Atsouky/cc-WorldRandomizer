@@ -1,7 +1,8 @@
-import json, os, random, re, shutil, threading
+import json, os, random, re, threading
 import matplotlib.pyplot as plt
 import networkx as nx
 import tkinter as tk
+from shutil import copy2,move
 from tkinter import ttk,messagebox , filedialog
 
 
@@ -505,7 +506,7 @@ def copy_folder_to_assets_data():
             dest_path = os.path.join(dest_folder, relative_path)
 
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-            shutil.copy2(file_path, dest_path)
+            copy2(file_path, dest_path)
 
             # Update the progress bar
             progress_bar["value"] += progress_step
@@ -796,9 +797,9 @@ def randomize_process(seed_value):
 
     
     os.makedirs(f"World_Rando_mods_{seed}", exist_ok=True)
-    shutil.move("spoiler", f"World_Rando_mods_{seed}")
-    shutil.move("assets", f"World_Rando_mods_{seed}")
-    shutil.move("package.json", f"World_Rando_mods_{seed}")
+    move("spoiler", f"World_Rando_mods_{seed}")
+    move("assets", f"World_Rando_mods_{seed}")
+    move("package.json", f"World_Rando_mods_{seed}")
     
     
     progress_bar["value"] = 100
@@ -845,7 +846,7 @@ def browse_folder():
 
 root = tk.Tk()
 root.title("Map Randomizer")
-root.geometry("800x500")  # Adjusted for the new components
+root.geometry("900x600")  # Adjusted for the new components
 root.resizable(False, False)
 
 chk_dungeons = tk.BooleanVar()
@@ -859,44 +860,60 @@ random_world.set(True)
 
 # Style général
 style = ttk.Style()
-style.configure("TButton", font=("Arial", 10, "bold"), padding=5)
-style.configure("TCheckbutton", font=("Arial", 10))
-
-# Options
-chk_dungeon = ttk.Checkbutton(root, text="Randomize dungeons", variable=chk_dungeons, onvalue=True, offvalue=False)
-chk_dungeon.pack(pady=2)
-
-chk_enemy = ttk.Checkbutton(root, text="Randomize enemies", variable=enemy_random, onvalue=True, offvalue=False)
-chk_enemy.pack(pady=2)
-
-chk_boss = ttk.Checkbutton(root, text="Randomize bosses and unique monsters", variable=random_bosses, onvalue=True, offvalue=False)
-chk_boss.pack(pady=2)
-
-chk_doors = ttk.Checkbutton(root, text="Randomise doors", variable=random_doors, onvalue=True, offvalue=False)
-chk_doors.pack(pady=2)
-
-chk_world = ttk.Checkbutton(root, text="Randomise world", variable=random_world, onvalue=True, offvalue=False)
-chk_world.pack(pady=2)
+style.configure("TButton", font=("Arial", 12, "bold"), padding=5)
+style.configure("TCheckbutton", font=("Arial", 12))
 
 # Titre
-label_title = ttk.Label(root, text="Map Randomizer", font=("Arial", 14, "bold"))
+label_title = ttk.Label(root, text="World Randomizer", font=("Arial", 18, "bold"))
 label_title.pack(pady=10)
 
+
+label_title = ttk.Label(root, text="Options", font=("Arial", 14, "bold"))
+label_title.pack(pady=10)
+
+options_frame = ttk.Frame(root)
+options_frame.pack(pady=5)
+options_frame2 = ttk.Frame(root)
+options_frame2.pack(pady=5)
+options_frame3 = ttk.Frame(root)
+options_frame3.pack(pady=5)
+
+# Options
+chk_doors = ttk.Checkbutton(options_frame, text="Randomized doors", variable=random_doors, onvalue=True, offvalue=False)
+chk_doors.pack(pady=2 , side="right")
+
+chk_world = ttk.Checkbutton(options_frame, text="Randomized world           ", variable=random_world, onvalue=True, offvalue=False)
+chk_world.pack(pady=2, side="left")
+
+chk_dungeon = ttk.Checkbutton(options_frame2, text="Randomized dungeons           ", variable=chk_dungeons, onvalue=True, offvalue=False)
+chk_dungeon.pack(pady=2, side="left")
+
+chk_enemy = ttk.Checkbutton(options_frame2, text="Randomized enemies", variable=enemy_random, onvalue=True, offvalue=False)
+chk_enemy.pack(pady=2 , side="right")
+
+chk_boss = ttk.Checkbutton(options_frame3, text="Randomized bosses and unique monsters", variable=random_bosses, onvalue=True, offvalue=False)
+chk_boss.pack(pady=2, side="left")
+
+
+
+space = ttk.Frame(root)
+space.pack(pady=5)
+
 # Entrée pour la seed
-label_seed = ttk.Label(root, text="Enter a Seed (optionnal) :", font=("Arial", 10))
+label_seed = ttk.Label(root, text="Enter a Seed (optionnal) :", font=("Arial", 14))
 label_seed.pack()
-entry_seed = ttk.Entry(root, font=("Arial", 10), width=20)
+entry_seed = ttk.Entry(root, font=("Arial", 12), width=20)
 entry_seed.pack(pady=5)
 
 # Entrée pour le dossier avec une valeur par défaut
-label_folder = ttk.Label(root, text="Select a Folder :", font=("Arial", 10))
+label_folder = ttk.Label(root, text="Select a Folder :", font=("Arial", 12))
 label_folder.pack(pady=5)
 
 # Create a frame to hold the entry and button horizontally
 folder_frame = ttk.Frame(root)
 folder_frame.pack(pady=5)
 
-entry_folder = ttk.Entry(folder_frame, font=("Arial", 10), width=70)
+entry_folder = ttk.Entry(folder_frame, font=("Arial", 11), width=70)
 entry_folder.insert(0, default_folder)  # Set default folder path
 entry_folder.pack(side="left", padx=5)
 
@@ -908,7 +925,7 @@ btn_randomize = ttk.Button(root, text="Start randomization", command=start_rando
 btn_randomize.pack(pady=10)
 
 # Barre de progression
-progress_label = ttk.Label(root, text="Progression :", font=("Arial", 10))
+progress_label = ttk.Label(root, text="Progression :", font=("Arial", 12))
 progress_label.pack()
 progress_bar = ttk.Progressbar(root, mode="indeterminate", length=250)
 progress_bar.pack(pady=5)
