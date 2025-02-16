@@ -19,10 +19,10 @@ This mod randomizes all locations in CrossCode.
 4. Click the "Randomize" button.  
 5. A folder named `World_Rando_mods_{seed}` will be created in your folder.
 6. Place the `World_Rando_mods_{seed}` folder into your mods folder
-7. Launch CrossCode and ensure the mod is active in the options.  
+7. Launch CrossCode and ensure the mod is enabled in the options.  
 
 ## Notes  
-- The tutorial is not randomize because of all ablilities not been unlock yet so it start at rookie harbor
+- The tutorial is not randomize because of all ablilities has not been unlock yet so it start at rookie harbor
 - If you want the spoiler file, you can find it in `World_Rando_mods_{seed}/spoiler/spoiler.txt`.  
 - Back up your original game files before using the randomizer.  
 - If you experience issues, you can restore the original maps using your backup.  
@@ -30,7 +30,7 @@ This mod randomizes all locations in CrossCode.
 > **PS:** I'm French, so sorry if my English isn't perfect!  
 
 ## Known Issues  
-- Only level 1 height is randomized because some maps (e.g., `guilde.entrance` like *8* teleporters, 5 of which are inaccessible) contain multiple `TeleporterGround`, leading to unreachable areas.  
+- Only level 1 height is randomized because some maps (e.g., `guilde.entrance` has, like, *8* teleporters, 5 of which are inaccessible) contain multiple `TeleporterGround`, leading to unreachable areas.  
 - Some `TeleporterGround` are used for developer debugging, which can teleport players into the void or the ground (e.g., in `autumn.path6` in the wall).  
 - There may be errors when linking maps; they will be listed in `World_Rando_mods_{seed}/spoiler/unstable_link.txt`.  
 - Randomizing enemies works fine, but randomizing bosses or unique enemies can cause softlocks due to enemy dependencies or invulnerable enemies.  
