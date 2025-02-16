@@ -13,7 +13,7 @@ This mod randomizes all locations in CrossCode.
 3. Run the application (`Randomize.exe`).  
 
 ## Usage  
-1. Open the application.  
+1. Open the application.  (may be consider as a virus so be cautious) 
 2. Select your CrossCode maps folder (`.../CrossCode/assets/data/maps`).  
 3. Choose the randomization options you want.  
 4. Click the "Randomize" button.  
