@@ -12,8 +12,32 @@ This mod randomizes all locations in CrossCode.
 2. Put the files into a folder of your choice.  
 3. Run the application (`Randomize.exe`).  
 
-## Usage  
-1. Open the application.  (may be consider as a virus so be cautious) 
+ 
+
+## ⚠ Disclaimer ⚠
+
+This software has been packaged using **PyInstaller**, which may cause some antivirus programs to flag it as a potential threat.  
+
+###  Why is this happening?
+- Certain antivirus programs may mistakenly flag **PyInstaller** executables as threats.
+- The application **does not contain any malicious code**.
+- You can verify this by checking a **ViruScanner** or reviewing the **source code**.
+
+### How to proceed safely:
+1. If Windows Defender blocks the file, click **"More info" > "Run anyway"**.
+2. You can **add the file to your antivirus exceptions** if needed.
+3. If you have concerns, you can run the **source code version** instead of the executable. (Python needed with matplotlib and neworkx)
+4. Or simply wait until the version is known by Microsoft (Too long or need money for a certificate)
+
+### 🔗 Additional Information
+- [VirusScanner](https://internxt.com/virus-scanner) 
+- [Source Code](https://github.com/Atsouky/cc-WorldRandomizer/blob/main/Randomize.py)
+
+Thank you for your trust! 
+
+## Usage 
+
+1. Open the application.  
 2. Select your CrossCode maps folder (`.../CrossCode/assets/data/maps`).  
 3. Choose the randomization options you want.  
 4. Click the "Randomize" button.  
@@ -22,10 +46,10 @@ This mod randomizes all locations in CrossCode.
 7. Launch CrossCode and ensure the mod is enabled in the options.  
 
 ## Notes  
-- The tutorial is not randomize because of all ablilities has not been unlock yet so it start at rookie harbor
+- The tutorial is not randomized because of all ablilities has not been unlock yet so it start at rookie harbor
 - If you want the spoiler file, you can find it in `World_Rando_mods_{seed}/spoiler/spoiler.txt`.  
 - Back up your original game files before using the randomizer.  
-- If you experience issues, you can restore the original maps using your backup.  
+- If you encounter issues, restore your original maps from your backup.  
 
 > **PS:** I'm French, so sorry if my English isn't perfect!  
 
