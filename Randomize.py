@@ -715,7 +715,7 @@ def randomize_process(seed_value):
         "homepage": "https://github.com/Atsouky/cc-MapRandomizer", 
         "license": "MIT", 
         "author": "Atsouky",
-        "version": "0.7.2",
+        "version": "0.7.5",
         "ccmodDependencies": {
             "open-world": "^0.4.1"
         }
