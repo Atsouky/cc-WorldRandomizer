@@ -215,9 +215,7 @@ dng_entrance_path = [
 
 
 def is_excluded(file_path, exclusion_patterns):
-    
     file_path = file_path.replace("\\", "/")
-    
     return any(re.search(pattern, file_path) for pattern in exclusion_patterns)
 
 def get_maps_ex(path, exclusion_patterns):
