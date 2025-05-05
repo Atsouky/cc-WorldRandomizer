@@ -1,5 +1,5 @@
 import re,os,json
-
+from ItemsTables import items
 
 
 PATHBASE = 'assets\\data\\maps'
@@ -9,7 +9,7 @@ exclusion_patterns = [
     r"assets/data/maps/arena/.*",
     r"assets/data/maps/.*test.*",
     r'assets/data/maps/.*template.*',
-    r'assets/data/maps/.*old.*',
+    #r'assets/data/maps/.*old.*',
     r'assets/data/maps/wm-preview/.*',
     r"assets/data/maps/puzzle-ideas/.*",
     r"assets/data/maps/path-finding/.*",
@@ -36,6 +36,8 @@ exclusion_patterns = [
     r'assets/data/maps/rookie-harbor/north2.json',
 
 ]
+
+
 
 def is_excluded(file_path, exclusion_patterns):
     file_path = file_path.replace("\\", "/")
@@ -110,9 +112,10 @@ def save(path,data):
         json.dump(data, f, indent=4)
         
         
-def get_teleporters(path):
+def get_all(path):
     data = load(path)
     teleporters = []
+    items = []
     for i in data['entities']:
         if i['type'] == 'TeleportGround':
             
@@ -124,7 +127,17 @@ def get_teleporters(path):
                                           i['settings']['dir'],
                                           path
                                           ))
-    return teleporters
+        if i['type'] == 'Chest':
+            if i['settings']['item'] != None and i['settings']['item'] not in items:
+                items.append(int(i['settings']['item']))
+        if i['type'] == 'EventTrigger':
+            for j in i["settings"]['event']:
+                if j['type'] == 'GIVE_ITEM':
+                    if j['item'] not in items:
+                        items.append(int(j['item']))
+    
+    
+    return {"Teleporters":teleporters,"Items":items}
 
 
 
@@ -132,16 +145,31 @@ def get_teleporters(path):
 
 maps = {}
 teleporters = []
+keys = {}
 for i in get_maps_ex(PATHBASE, exclusion_patterns):
+    
     maps[i] = (Room(path_to_name(i),path_to_region(i),i))
-    teleporters.extend(get_teleporters(i))
+    alls = get_all(i)
+    teleporters.extend(alls['Teleporters'])
+    
+    a = alls['Items']
+    if a != []:
+        for item in a :
+            if 'Key' in items[item] or 'Shade' in items[item]:
+                if item not in keys:
+                    keys[i] = item
+                else:
+                    keys[i].append(item)
+            
+                maps[i].items.append(item)
+
     
 for i in teleporters:
     maps[i.dir].teleporters.append(i)
 
-
-
-
+for i,j in maps.items():
+    if j.items:
+        print(i,j.items)
 
 
 
